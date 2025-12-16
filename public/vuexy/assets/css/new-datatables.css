@@ -1,0 +1,198 @@
+/* =========================
+   DataTables Vuexy theme-aware overrides
+   Place this AFTER Vuexy and DataTables CSS
+   ========================= */
+
+/* Utility: prefer explicit wrapper class toggles (added by JS later) */
+.dataTables_wrapper.dt-light,
+html[data-bs-theme="light"] .dataTables_wrapper,
+body[data-bs-theme="light"] .dataTables_wrapper,
+.dark-layout:not([data-bs-theme]) .dataTables_wrapper.dt-light {
+    background: var(--bs-paper-bg) !important;
+    color: var(--bs-body-color) !important;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    transition: background-color .25s ease, color .25s ease;
+}
+
+/* Dark theme selectors: accounts for both attribute and .dark-layout usage */
+.dataTables_wrapper.dt-dark,
+html[data-bs-theme="dark"] .dataTables_wrapper,
+body[data-bs-theme="dark"] .dataTables_wrapper,
+.dark-layout .dataTables_wrapper {
+    background: var(--bs-paper-bg) !important;
+    color: var(--bs-body-color) !important;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: none;
+    transition: background-color .25s ease, color .25s ease;
+}
+
+/* SEARCH / LENGTH inputs */
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_length {
+    margin-bottom: 20px;
+}
+
+/* input styling light */
+.dataTables_wrapper.dt-light .dataTables_filter input,
+html[data-bs-theme="light"] .dataTables_wrapper .dataTables_filter input {
+    border: 2px solid var(--bs-gray-200) !important;
+    background: var(--bs-white) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* input styling dark */
+.dataTables_wrapper.dt-dark .dataTables_filter input,
+html[data-bs-theme="dark"] .dataTables_wrapper .dataTables_filter input,
+.dark-layout .dataTables_wrapper .dataTables_filter input {
+    border: 1px solid var(--bs-border-color) !important;
+    background: var(--bs-dark-bg-subtle) !important;
+    color: var(--bs-body-color) !important;
+}
+
+/* ensure the search input doesn't wrap tiny text */
+/* 🔍 Search input (DataTables filter) */
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 8px;
+    padding: 6px 10px;
+    width: 200px;
+    /* narrower width for search box */
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: all 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.25);
+    outline: none;
+}
+
+/* 📊 Length dropdown (entries per page) */
+.dataTables_wrapper .dataTables_length select {
+    border-radius: 6px;
+    padding: 6px 10px;
+    width: auto;
+    /* let it fit content */
+    min-width: 50px;
+    /* optional: ensure not too small */
+    box-sizing: border-box;
+    border: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: all 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_length select:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.15rem rgba(var(--bs-primary-rgb), 0.25);
+    outline: none;
+}
+
+
+/* TABLE base */
+.dataTables_wrapper table.dataTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 100%;
+    table-layout: auto;
+}
+
+/* THEAD light */
+.dataTables_wrapper.dt-light table.dataTable thead th,
+html[data-bs-theme="light"] .dataTables_wrapper table.dataTable thead th {
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-indigo)) !important;
+    color: var(--bs-white) !important;
+    font-weight: 600;
+    padding: 12px;
+    text-align: center;
+}
+
+/* THEAD dark */
+.dataTables_wrapper.dt-dark table.dataTable thead th,
+html[data-bs-theme="dark"] .dataTables_wrapper table.dataTable thead th,
+.dark-layout .dataTables_wrapper table.dataTable thead th {
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-indigo)) !important;
+    color: var(--bs-heading-color) !important;
+    font-weight: 600;
+    padding: 12px;
+    text-align: center;
+}
+
+/* TBODY cell styles */
+.dataTables_wrapper table.dataTable tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+/* TBODY row hover light/dark */
+.dataTables_wrapper.dt-light table.dataTable tbody tr:hover {
+    background: var(--bs-gray-50) !important;
+    transform: translateY(-1px);
+}
+
+.dataTables_wrapper.dt-dark table.dataTable tbody tr:hover {
+    background: var(--bs-dark-bg-subtle) !important;
+    transform: translateY(-1px);
+}
+
+/* borders */
+.dataTables_wrapper.dt-light table.dataTable tbody td {
+    border-bottom: 1px solid var(--bs-gray-100) !important;
+}
+
+.dataTables_wrapper.dt-dark table.dataTable tbody td {
+    border-bottom: 1px solid var(--bs-border-color) !important;
+}
+
+/* Pagination (modern pill style) */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    border-radius: 8px;
+    margin: 0 4px;
+    padding: 6px 10px;
+    border: 1px solid transparent !important;
+    transition: all .12s ease;
+}
+
+/* light pagination base */
+.dataTables_wrapper.dt-light .dataTables_paginate .paginate_button {
+    color: var(--bs-primary) !important;
+    background: transparent !important;
+}
+
+/* dark pagination base */
+.dataTables_wrapper.dt-dark .dataTables_paginate .paginate_button {
+    color: var(--bs-primary-text-emphasis) !important;
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* current page button - both themes */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: linear-gradient(45deg, var(--bs-primary), var(--bs-indigo)) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), 0.25) !important;
+    border: none !important;
+    border-radius: 8px;
+}
+
+/* info text */
+.dataTables_wrapper .dataTables_info {
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* responsive tweaks */
+@media (max-width: 768px) {
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100% !important;
+    }
+}
