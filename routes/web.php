@@ -9,6 +9,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ValueController;
+use App\Http\Controllers\RecommendationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,4 +52,27 @@ Route::prefix('/')
         Route::get('/pemeriksaan-diagnostik/{id}', [ValueController::class, 'pemeriksaanDiagnostik'])->name('pemeriksaan.diagnostik');
         Route::get('/annual-tanda-vital/{id}', [ValueController::class, 'annualTandaVital'])->name('tanda.vital');
         Route::get('/kesimpulan-saran/{id}', [ValueController::class, 'kesimpulanSaran'])->name('kesimpulan.saran');
+
+        // ---------------------------------------------------------------
+        // Rekomendasi Fuzzy Mamdani
+        // ---------------------------------------------------------------
+
+        // Daftar karyawan + filter tahun (GET /rekomendasi?tahun=2025)
+        Route::get('/rekomendasi', [RecommendationController::class, 'index'])->name('rekomendasi.index');
+
+        // Generate rekomendasi untuk SEMUA karyawan (tahun dipilih) — satu tombol
+        // HARUS sebelum route /{id} supaya "generate-all" tidak ditangkap sebagai {id}
+        Route::post('/rekomendasi/generate-all', [RecommendationController::class, 'generateAll'])->name('rekomendasi.generate-all');
+
+        // Batch approve semua rekomendasi pending untuk tahun dipilih
+        Route::post('/rekomendasi/accept-all', [RecommendationController::class, 'acceptAll'])->name('rekomendasi.accept-all');
+
+        // Detail rekomendasi + form validasi (dengan navigasi prev/next)
+        Route::get('/rekomendasi/{id}', [RecommendationController::class, 'show'])->name('rekomendasi.show');
+
+        // Simpan keputusan validasi: approved | rejected | update
+        Route::put('/rekomendasi/{id}/validate', [RecommendationController::class, 'validateRec'])->name('rekomendasi.validate');
+
+        // Karyawan: lihat rekomendasi yang sudah divalidasi dokter (read-only)
+        Route::get('/rekomendasi-saya/{id}', [RecommendationController::class, 'employeeView'])->name('rekomendasi.saya');
     });

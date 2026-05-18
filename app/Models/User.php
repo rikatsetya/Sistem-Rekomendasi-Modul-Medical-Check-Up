@@ -43,6 +43,11 @@ class User extends Authenticatable
         return $this->hasMany(Value::class);
     }
 
+    public function recommendations()
+    {
+        return $this->hasMany(\App\Models\Recommendation::class);
+    }
+
     public function isSuperAdmin(): bool
     {
         return $this->hasRole('super-admin');
