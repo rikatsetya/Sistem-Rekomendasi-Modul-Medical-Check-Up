@@ -2,53 +2,6 @@
 
 @push('style')
 <style>
-/* ============================================================
-   NAVIGASI KIRI / KANAN  (fixed, vertically centred)
-   ============================================================ */
-.nav-arrow {
-    position: fixed;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1050;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: rgba(67, 89, 113, 0.75);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: background .2s, transform .2s;
-    box-shadow: 0 4px 14px rgba(0,0,0,.25);
-}
-.nav-arrow:hover {
-    background: rgba(67, 89, 113, 1);
-    color: #fff;
-    transform: translateY(-50%) scale(1.12);
-}
-.nav-arrow.disabled {
-    background: rgba(150,150,150,.3);
-    pointer-events: none;
-    cursor: default;
-}
-.nav-arrow-left  { left:  10px; }
-.nav-arrow-right { right: 10px; }
-
-/* Position counter badge */
-.nav-position {
-    position: fixed;
-    top: calc(50% + 34px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1050;
-    background: rgba(67,89,113,.7);
-    color: #fff;
-    font-size: .72rem;
-    padding: 2px 10px;
-    border-radius: 20px;
-    pointer-events: none;
-}
 
 /* ============================================================
    RISK SCORE GAUGE
@@ -99,38 +52,6 @@
 
 @section('content')
 
-{{-- ============================================================
-     NAVIGASI PREV / NEXT  (fixed arrows on left & right)
-     ============================================================ --}}
-
-{{-- Tombol Kiri — Karyawan Sebelumnya --}}
-@if($prevId)
-    <a href="{{ route('rekomendasi.show', $prevId) }}?tahun={{ $tahun }}"
-       class="nav-arrow nav-arrow-left"
-       title="Karyawan Sebelumnya">
-        <i class="ti tabler-arrow-left ti-lg"></i>
-    </a>
-@else
-    <span class="nav-arrow nav-arrow-left disabled">
-        <i class="ti tabler-arrow-left ti-lg"></i>
-    </span>
-@endif
-
-{{-- Posisi: "3 / 10" --}}
-<div class="nav-position">{{ $position }} / {{ $total }}</div>
-
-{{-- Tombol Kanan — Karyawan Berikutnya --}}
-@if($nextId)
-    <a href="{{ route('rekomendasi.show', $nextId) }}?tahun={{ $tahun }}"
-       class="nav-arrow nav-arrow-right"
-       title="Karyawan Berikutnya">
-        <i class="ti tabler-arrow-right ti-lg"></i>
-    </a>
-@else
-    <span class="nav-arrow nav-arrow-right disabled">
-        <i class="ti tabler-arrow-right ti-lg"></i>
-    </span>
-@endif
 
 {{-- ============================================================
      FLASH MESSAGES
@@ -174,28 +95,41 @@
 </div>
 
 {{-- ============================================================
-     STATUS BANNER
+     NAVIGASI DATA (Prev / Position / Next)
      ============================================================ --}}
-<div class="status-banner {{ $rec->status }} mb-4">
-    @if($rec->status === 'pending')
-        <i class="ti tabler-clock-hour4 ti-md"></i>
-        Menunggu validasi dokter
-    @elseif($rec->status === 'approved')
-        <i class="ti tabler-circle-check ti-md"></i>
-        Disetujui oleh <strong>{{ $rec->doctor?->name ?? '—' }}</strong>
-        pada {{ $rec->validated_at?->format('d M Y, H:i') ?? '—' }}
-        @if($rec->doctor_notes)
-            &nbsp;—&nbsp; <em>"{{ $rec->doctor_notes }}"</em>
-        @endif
+<div class="d-flex align-items-center justify-content-between mb-4">
+
+    {{-- Prev --}}
+    @if($prevId)
+        <a href="{{ route('rekomendasi.show', $prevId) }}?tahun={{ $tahun }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="ti tabler-arrow-left me-1"></i>Sebelumnya
+        </a>
     @else
-        <i class="ti tabler-circle-x ti-md"></i>
-        Ditolak oleh <strong>{{ $rec->doctor?->name ?? '—' }}</strong>
-        pada {{ $rec->validated_at?->format('d M Y, H:i') ?? '—' }}
-        @if($rec->doctor_notes)
-            &nbsp;—&nbsp; <em>"{{ $rec->doctor_notes }}"</em>
-        @endif
+        <button class="btn btn-outline-secondary btn-sm" disabled>
+            <i class="ti tabler-arrow-left me-1"></i>Sebelumnya
+        </button>
     @endif
+
+    {{-- Position --}}
+    <span class="badge bg-label-primary">
+        {{ $position }} / {{ $total }}
+    </span>
+
+    {{-- Next --}}
+    @if($nextId)
+        <a href="{{ route('rekomendasi.show', $nextId) }}?tahun={{ $tahun }}"
+           class="btn btn-outline-secondary btn-sm">
+            Berikutnya<i class="ti tabler-arrow-right ms-1"></i>
+        </a>
+    @else
+        <button class="btn btn-outline-secondary btn-sm" disabled>
+            Berikutnya<i class="ti tabler-arrow-right ms-1"></i>
+        </button>
+    @endif
+
 </div>
+
 
 {{-- ============================================================
      MAIN ROW: Fuzzy Info (kiri) + Form Validasi (kanan)
@@ -353,9 +287,8 @@
         {{-- =====================================================
              FORM VALIDASI
              ===================================================== --}}
-        <form method="POST"
-              action="{{ route('rekomendasi.validate', $rec->id) }}?tahun={{ $tahun }}"
-              id="validateForm">
+        <form method="POST" action="{{ route('rekomendasi.update', $rec->id) }}"
+      id="validateForm">
             @csrf
             @method('PUT')
             {{-- Tahun diteruskan sebagai hidden input agar controller bisa redirect kembali --}}
@@ -370,7 +303,8 @@
                 </div>
                 <div class="card-body">
                     <textarea name="rec_diet"
-                              class="form-control rec-area @error('rec_diet') is-invalid @enderror"
+                              class="form-control"
+                              rows="8"
                               id="rec_diet">{{ old('rec_diet', $rec->rec_diet) }}</textarea>
                     @error('rec_diet')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -387,7 +321,8 @@
                 </div>
                 <div class="card-body">
                     <textarea name="rec_exercise"
-                              class="form-control rec-area @error('rec_exercise') is-invalid @enderror"
+                              class="form-control"
+                              rows="4"
                               id="rec_exercise">{{ old('rec_exercise', $rec->rec_exercise) }}</textarea>
                     @error('rec_exercise')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -404,7 +339,8 @@
                 </div>
                 <div class="card-body">
                     <textarea name="rec_notes"
-                              class="form-control rec-area"
+                              class="form-control"
+                              rows="3"
                               id="rec_notes">{{ old('rec_notes', $rec->rec_notes) }}</textarea>
                 </div>
             </div>
@@ -425,79 +361,56 @@
                 </div>
             </div>
 
-            {{-- =========================================================
-                 TOMBOL AKSI — berubah berdasarkan status rekomendasi
-                 =========================================================
-
-                 PENDING  → [Setujui]  [Tolak]
-                 APPROVED → [Simpan Perubahan]   ← status tetap approved
-                 REJECTED → [Setujui]  [Simpan Perubahan]
-            ========================================================== --}}
-
-            @if($rec->status === 'pending')
-                {{-- ── PENDING: dua pilihan utama ── --}}
-                <div class="d-flex gap-3">
-                    <button type="submit"
-                            name="action"
-                            value="approved"
-                            class="btn btn-success flex-fill"
-                            onclick="return confirm('Setujui rekomendasi ini?\nKaryawan akan dapat melihatnya setelah disetujui.')">
-                        <i class="ti tabler-circle-check me-2"></i>Setujui
-                    </button>
-                    <button type="submit"
-                            name="action"
-                            value="rejected"
-                            class="btn btn-danger flex-fill"
-                            onclick="return confirm('Tolak rekomendasi ini?')">
-                        <i class="ti tabler-circle-x me-2"></i>Tolak
-                    </button>
-                </div>
-
-            @elseif($rec->status === 'approved')
-                {{-- ── APPROVED: hanya tombol Update teks ── --}}
-                {{-- Rekomendasi sudah disetujui — dokter hanya bisa mengedit teks    --}}
-                {{-- tanpa mengubah status (action = 'update')                        --}}
-                <div class="alert alert-success py-2 mb-3 small">
-                    <i class="ti tabler-lock me-1"></i>
-                    Rekomendasi ini sudah <strong>Disetujui</strong>.
-                    Anda masih dapat mengedit teks rekomendasi di atas, lalu klik
-                    <strong>Simpan Perubahan</strong>.
-                </div>
-                <div class="d-flex gap-3">
-                    <button type="submit"
-                            name="action"
-                            value="update"
-                            class="btn btn-primary flex-fill">
-                        <i class="ti tabler-device-floppy me-2"></i>Simpan Perubahan
-                    </button>
-                </div>
-
-            @else
-                {{-- ── REJECTED: bisa re-approve atau simpan editan ── --}}
-                <div class="alert alert-danger py-2 mb-3 small">
-                    <i class="ti tabler-info-circle me-1"></i>
-                    Rekomendasi ini sebelumnya <strong>Ditolak</strong>.
-                    Anda dapat menyetujuinya kembali atau hanya menyimpan perubahan teks.
-                </div>
-                <div class="d-flex gap-3">
-                    <button type="submit"
-                            name="action"
-                            value="approved"
-                            class="btn btn-success flex-fill"
-                            onclick="return confirm('Setujui rekomendasi ini?')">
-                        <i class="ti tabler-circle-check me-2"></i>Setujui
-                    </button>
-                    <button type="submit"
-                            name="action"
-                            value="update"
-                            class="btn btn-outline-secondary flex-fill">
-                        <i class="ti tabler-device-floppy me-2"></i>Simpan Perubahan
-                    </button>
-                </div>
-
-            @endif
+<button type="button"
+        class="btn btn-primary px-4"
+        data-bs-toggle="modal"
+        data-bs-target="#confirmSaveModal">
+    <i class="ti tabler-device-floppy me-2"></i>Simpan Perubahan
+</button>
 
         </form>{{-- /validateForm --}}
+    {{-- ============================================================
+     MODAL KONFIRMASI SIMPAN PERUBAHAN
+     ============================================================ --}}
+<div class="modal fade" id="confirmSaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="ti tabler-alert-circle text-warning me-2"></i>
+                    Konfirmasi Perubahan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="mb-0">
+                    Anda yakin ingin <strong>menyimpan perubahan rekomendasi</strong> ini?
+                </p>
+                <small class="text-muted">
+                    Data akan diperbarui dan status rekomendasi akan disimpan sebagai draft.
+                </small>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Batal
+                </button>
+
+                {{-- Tombol submit form --}}
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="document.getElementById('validateForm').submit();">
+                    <i class="ti tabler-device-floppy me-1"></i>Ya, Simpan
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
 
     </div>{{-- /kolom kanan --}}
 

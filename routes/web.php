@@ -65,13 +65,12 @@ Route::prefix('/')
         Route::post('/rekomendasi/generate-all', [RecommendationController::class, 'generateAll'])->name('rekomendasi.generate-all');
 
         // Batch approve semua rekomendasi pending untuk tahun dipilih
-        Route::post('/rekomendasi/accept-all', [RecommendationController::class, 'acceptAll'])->name('rekomendasi.accept-all');
+        Route::post('/rekomendasi/publish-all', [RecommendationController::class, 'publishAll'])->name('rekomendasi.publish-all');
 
         // Detail rekomendasi + form validasi (dengan navigasi prev/next)
         Route::get('/rekomendasi/{id}', [RecommendationController::class, 'show'])->name('rekomendasi.show');
 
-        // Simpan keputusan validasi: approved | rejected | update
-        Route::put('/rekomendasi/{id}/validate', [RecommendationController::class, 'validateRec'])->name('rekomendasi.validate');
+        Route::put('/rekomendasi/{id}', [RecommendationController::class, 'update'])->name('rekomendasi.update');
 
         // Karyawan: lihat rekomendasi yang sudah divalidasi dokter (read-only)
         Route::get('/rekomendasi-saya/{id}', [RecommendationController::class, 'employeeView'])->name('rekomendasi.saya');

@@ -4,9 +4,9 @@
 <style>
     /* ---- Stat cards ---- */
     .stat-card            { border-left: 4px solid; border-radius: 10px; }
-    .stat-card.pending    { border-color: #ffc107; }
-    .stat-card.approved   { border-color: #28a745; }
-    .stat-card.rejected   { border-color: #dc3545; }
+    .stat-card.pending    { border-color: #8a8a8aff; }
+    .stat-card.approved   { border-color: #ffc107; }
+    .stat-card.rejected   { border-color: #28a745; }
 
     /* ---- Risk label colours (text) ---- */
     .risk-sehat   { color: #1a8a4a; font-weight: 600; }
@@ -90,32 +90,36 @@
                 <input type="hidden" name="tahun" id="genYear" value="{{ $selectedYear }}">
                 <button type="submit"
                         class="btn btn-primary btn-sm"
-                        onclick="return confirm('Generate rekomendasi untuk SEMUA karyawan tahun ' + document.getElementById('genYear').value + '?\n\nSemua status akan direset ke Pending.')">
-                    <i class="ti tabler-refresh me-1"></i>Generate Semua
+                        onclick="return confirm('Generate rekomendasi untuk SEMUA karyawan tahun ' + document.getElementById('genYear').value + '?\n\nSemua status akan berubah menjadi Generated.')">
+                    <i class="ti tabler-refresh me-1"></i>Generate Rekomendasi
                 </button>
             </form>
 
             {{-- spacer --}}
             <span class="flex-grow-1"></span>
 
-            {{-- ── (C) Accept All: batch approve semua pending ── --}}
-            @if($pendingCount > 0)
-                <form method="POST" action="{{ route('rekomendasi.accept-all') }}">
-                    @csrf
-                    <input type="hidden" name="tahun" id="acceptYear" value="{{ $selectedYear }}">
-                    <button type="submit"
-                            class="btn btn-success btn-sm"
-                            onclick="return confirm('Setujui SEMUA {{ $pendingCount }} rekomendasi pending untuk tahun ' + document.getElementById('acceptYear').value + '?')">
-                        <i class="ti tabler-checks me-1"></i>Accept All
-                        <span class="badge bg-white text-success ms-1">{{ $pendingCount }}</span>
-                    </button>
-                </form>
-            @else
-                <button class="btn btn-success btn-sm" disabled title="Tidak ada rekomendasi pending">
-                    <i class="ti tabler-checks me-1"></i>Accept All
-                    <span class="badge bg-white text-muted ms-1">0</span>
-                </button>
-            @endif
+            {{-- ── (C) Publish All: publish semua generated (draft) ── --}}
+@if($generatedCount > 0)
+    <form method="POST" action="{{ route('rekomendasi.publish-all') }}">
+        @csrf
+        <input type="hidden" name="tahun" id="publishYear" value="{{ $selectedYear }}">
+        <button type="submit"
+                class="btn btn-success btn-sm"
+                onclick="return confirm(
+                    'Publish SEMUA {{ $generatedCount }} rekomendasi untuk tahun ' +
+                    document.getElementById('publishYear').value +
+                    '?\n\nData akan terlihat oleh karyawan.'
+                )">
+            <i class="ti tabler-upload me-1"></i>Publish Data
+            <span class="badge bg-white text-success ms-1">{{ $generatedCount }}</span>
+        </button>
+    </form>
+@else
+    <button class="btn btn-success btn-sm" disabled title="Tidak ada data untuk dipublish">
+        <i class="ti tabler-upload me-1"></i>Publish Data
+        <span class="badge bg-white text-muted ms-1">0</span>
+    </button>
+@endif
 
         </div>
     </div>
@@ -128,12 +132,12 @@
     <div class="col-md-4">
         <div class="card stat-card pending h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div class="avatar avatar-lg bg-label-warning rounded">
+                <div class="avatar avatar-lg bg-label-secondary rounded">
                     <i class="ti tabler-clock-hour4 ti-lg"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Menunggu Validasi ({{ $selectedYear }})</div>
-                    <div class="fs-3 fw-bold text-warning">{{ $pendingCount }}</div>
+                    <div class="text-muted small">Data Mentah ({{ $selectedYear }})</div>
+<div class="fs-3 fw-bold text-secondary">{{ $rawCount }}</div>
                 </div>
             </div>
         </div>
@@ -141,12 +145,12 @@
     <div class="col-md-4">
         <div class="card stat-card approved h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div class="avatar avatar-lg bg-label-success rounded">
+                <div class="avatar avatar-lg bg-label-warning rounded">
                     <i class="ti tabler-circle-check ti-lg"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Disetujui ({{ $selectedYear }})</div>
-                    <div class="fs-3 fw-bold text-success">{{ $approvedCount }}</div>
+                    <div class="text-muted small">Hasil Generate ({{ $selectedYear }})</div>
+<div class="fs-3 fw-bold text-warning">{{ $generatedCount }}</div>
                 </div>
             </div>
         </div>
@@ -154,12 +158,12 @@
     <div class="col-md-4">
         <div class="card stat-card rejected h-100">
             <div class="card-body d-flex align-items-center gap-3">
-                <div class="avatar avatar-lg bg-label-danger rounded">
+                <div class="avatar avatar-lg bg-label-success rounded">
                     <i class="ti tabler-circle-x ti-lg"></i>
                 </div>
                 <div>
-                    <div class="text-muted small">Ditolak ({{ $selectedYear }})</div>
-                    <div class="fs-3 fw-bold text-danger">{{ $rejectedCount }}</div>
+                    <div class="text-muted small">Sudah Dipublish ({{ $selectedYear }})</div>
+<div class="fs-3 fw-bold text-success">{{ $publishedCount }}</div>
                 </div>
             </div>
         </div>
@@ -215,8 +219,8 @@
 
                             {{-- Gender --}}
                             <td class="text-center">
-                                <span class="badge {{ $user->gender === 'L' ? 'bg-label-primary' : 'bg-label-danger' }}">
-                                    {{ $user->gender === 'L' ? 'L' : 'P' }}
+                                <span class="badge {{ $user->gender === 'l' ? 'bg-label-primary' : 'bg-label-danger' }}">
+                                    {{ $user->gender === 'l' ? 'L' : 'P' }}
                                 </span>
                             </td>
 
@@ -248,12 +252,14 @@
 
                             {{-- Status --}}
                             <td class="text-center">
-                                @if($rec)
-                                    <span class="badge {{ $rec->statusBadgeClass() }}">
-                                        {{ ucfirst($rec->status) }}
-                                    </span>
+                                @if(!$rec)
+                                    <span class="badge bg-label-secondary">Raw</span>
+                                @elseif($rec->status === 'draft')
+                                    <span class="badge bg-label-warning">Generated</span>
+                                @elseif($rec->status === 'published')
+                                    <span class="badge bg-label-success">Published</span>
                                 @else
-                                    <span class="badge bg-label-secondary">—</span>
+                                    <span class="badge bg-label-secondary">Unknown</span>
                                 @endif
                             </td>
 
@@ -295,9 +301,9 @@
      */
     function syncYear(year) {
         var g = document.getElementById('genYear');
-        var a = document.getElementById('acceptYear');
+        var p = document.getElementById('publishYear');
         if (g) g.value = year;
-        if (a) a.value = year;
+        if (p) p.value = year;
     }
 
     $(document).ready(function () {
