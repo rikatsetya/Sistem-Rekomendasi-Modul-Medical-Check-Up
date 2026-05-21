@@ -60,7 +60,7 @@ class FuzzyMamdaniService
         $glukosa     = (float) ($inputs['glukosa']     ?? 0);
         $kolesterol  = (float) ($inputs['kolesterol']  ?? 0);
         $asamUrat    = (float) ($inputs['asam_urat']   ?? 0);
-        $trigliserida= (float) ($inputs['trigliserida']?? 0);
+        $trigliserida = (float) ($inputs['trigliserida'] ?? 0);
         $gender      = strtoupper(trim($inputs['gender'] ?? 'L'));
 
         return [
@@ -427,100 +427,140 @@ class FuzzyMamdaniService
      * @param  float  $riskScore  Skor hasil defuzzifikasi [0, 100]
      * @return array  ['risk_label', 'rec_diet', 'rec_exercise', 'rec_notes']
      */
-    public function generateRecommendation(float $riskScore): array
-    {
-        if ($riskScore < 35) {
-            // ----------------------------------------------------------------
-            // SEHAT — pertahankan pola hidup
-            // ----------------------------------------------------------------
-            return [
-                'risk_label'   => 'Sehat',
-                'rec_diet'     =>
-                    "✅ Pola Makan yang Dianjurkan:\n" .
-                    "• Konsumsi makanan seimbang: nasi/kentang, sayuran, buah, protein tanpa lemak\n" .
-                    "• Perbanyak serat: sayuran hijau, buah-buahan, biji-bijian\n" .
-                    "• Minum air putih minimal 8 gelas/hari\n" .
-                    "• Batasi gula tambahan dan makanan olahan\n\n" .
-                    "🚫 Makanan yang Dihindari:\n" .
-                    "• Hindari konsumsi berlebih makanan tinggi garam (kerupuk, acar, makanan kaleng)\n" .
-                    "• Kurangi minuman manis dan bersoda",
+    public function generateRecommendation(
+        float $averageScore,
+        array $groupScores
+    ): array {
+        $recDiet = [];
+        $recExercise = [];
+        $recNotes = [];
 
-                'rec_exercise' =>
-                    "🏃 Rekomendasi Olahraga: Aktivitas Ringan–Sedang\n" .
-                    "• Jalan kaki cepat 30 menit, minimal 5x/minggu\n" .
-                    "• Bersepeda santai atau berenang 2–3x/minggu\n" .
-                    "• Peregangan (stretching) setiap hari untuk fleksibilitas",
-
-                'rec_notes'    =>
-                    'Status kesehatan Anda tergolong BAIK. Pertahankan pola makan sehat dan rutinitas olahraga. ' .
-                    'Lakukan pemeriksaan MCU tahunan untuk pemantauan berkala.',
-            ];
+        /*
+    |--------------------------------------------------------------------------
+    | 1. Tentukan tingkat intervensi global (berdasarkan rata-rata skor)
+    |--------------------------------------------------------------------------
+    */
+        if ($averageScore <= 30) {
+            $level = 'Ringan';
+            $duration = '6 bulan';
+        } elseif ($averageScore <= 70) {
+            $level = 'Sedang';
+            $duration = '12 bulan';
+        } else {
+            $level = 'Tinggi';
+            $duration = '12–24 bulan';
         }
 
-        if ($riskScore < 65) {
-            // ----------------------------------------------------------------
-            // RISIKO SEDANG — perubahan gaya hidup, pantau lebih ketat
-            // ----------------------------------------------------------------
-            return [
-                'risk_label'   => 'Risiko Sedang',
-                'rec_diet'     =>
-                    "✅ Pola Makan yang Dianjurkan:\n" .
-                    "• Diet rendah karbohidrat sederhana: kurangi nasi putih, pilih nasi merah atau ubi\n" .
-                    "• Tingkatkan konsumsi sayuran non-tepung: brokoli, bayam, wortel\n" .
-                    "• Pilih protein tanpa lemak: ikan, ayam tanpa kulit, putih telur, tahu/tempe\n" .
-                    "• Konsumsi lemak sehat: alpukat, ikan salmon, minyak zaitun (porsi wajar)\n" .
-                    "• Makan dalam porsi lebih kecil tetapi lebih sering (4–5x/hari)\n\n" .
-                    "🚫 Makanan yang Dihindari:\n" .
-                    "• Jeroan, daging berlemak, kulit ayam\n" .
-                    "• Gorengan, fast food, makanan berlemak jenuh\n" .
-                    "• Minuman manis: jus kemasan, teh manis, minuman soda\n" .
-                    "• Garam berlebih: saus instan, keripik, makanan kaleng",
-
-                'rec_exercise' =>
-                    "🏃 Rekomendasi Olahraga: Aktivitas Sedang\n" .
-                    "• Jalan cepat atau jogging ringan 30–45 menit, 5x/minggu\n" .
-                    "• Senam aerobik intensitas sedang 3x/minggu\n" .
-                    "• Latihan kekuatan ringan (menggunakan beban tubuh) 2x/minggu\n" .
-                    "• Hindari duduk/berbaring lebih dari 2 jam berturut-turut",
-
-                'rec_notes'    =>
-                    'Status kesehatan Anda berada pada kategori RISIKO SEDANG. Disarankan untuk segera ' .
-                    'mengubah pola makan dan meningkatkan aktivitas fisik. Konsultasikan ke dokter ' .
-                    'perusahaan untuk evaluasi lebih lanjut jika diperlukan.',
-            ];
+        /*
+    |--------------------------------------------------------------------------
+    | 2. Rekomendasi umum (baseline) – berdasarkan tingkat global
+    |--------------------------------------------------------------------------
+    */
+        if ($level === 'Ringan') {
+            $recDiet[] = 'Edukasi gizi seimbang dan pola makan sehat.';
+            $recExercise[] = 'Aktivitas fisik ringan seperti jalan santai minimal 30 menit/hari.';
         }
 
-        // --------------------------------------------------------------------
-        // RISIKO TINGGI — intervensi segera, pantau intensif
-        // --------------------------------------------------------------------
+        if ($level === 'Sedang') {
+            $recDiet[] = 'Defisit kalori 400–500 kkal/hari dari kebutuhan basal.';
+            $recDiet[] = 'Komposisi makronutrien: karbohidrat kompleks 50–60%, protein 15–20%, lemak sehat 25–30%.';
+            $recDiet[] = 'Asupan serat minimal 25 gram/hari dari sayur dan buah utuh.';
+            $recExercise[] = 'Aerobik intensitas sedang ±150 menit/minggu (jalan cepat, bersepeda ringan).';
+            $recExercise[] = 'Latihan kekuatan 2x/minggu (squat, push-up, bodyweight).';
+        }
+
+        if ($level === 'Tinggi') {
+            $recDiet[] = 'Pengaturan pola makan ketat dan terstruktur dengan pengawasan tenaga kesehatan.';
+            $recExercise[] = 'Aktivitas fisik terkontrol dan disesuaikan kondisi medis.';
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 3. Rekomendasi spesifik per kelompok (kontekstual & rasional)
+    |--------------------------------------------------------------------------
+    */
+
+        // Obesitas Metabolik
+        if (($groupScores['obesitas_metabolik'] ?? 0) >= 50) {
+            $recDiet[] = 'Fokus pada defisit kalori bertahap dan kontrol porsi makan.';
+            $recExercise[] = 'Aerobik rutin dan peningkatan aktivitas harian (NEAT).';
+        }
+
+        // Diabetes
+        if (($groupScores['diabetes'] ?? 0) >= 50) {
+            $recDiet[] = 'Batasi gula sederhana dan indeks glikemik tinggi.';
+            $recDiet[] = 'Distribusi karbohidrat merata sepanjang hari.';
+            $recExercise[] = 'Aktivitas aerobik teratur untuk meningkatkan sensitivitas insulin.';
+        }
+
+        // Kardiovaskular
+        if (($groupScores['kardiovaskular'] ?? 0) >= 50) {
+            $recDiet[] = 'Batasi lemak jenuh dan kolesterol.';
+            $recDiet[] = 'Konsumsi lemak sehat (ikan, kacang-kacangan, minyak zaitun).';
+            $recExercise[] = 'Olahraga aerobik intensitas sedang dengan monitoring denyut nadi.';
+        }
+
+        // Ginjal
+        if (($groupScores['ginjal'] ?? 0) >= 50) {
+            $recDiet[] = 'Perhatikan asupan protein agar tidak berlebihan.';
+            $recDiet[] = 'Hindari konsumsi garam berlebih dan makanan olahan.';
+            $recExercise[] = 'Aktivitas fisik ringan–sedang, hindari dehidrasi.';
+        }
+
+        // Hati
+        if (($groupScores['hati'] ?? 0) >= 50) {
+            $recDiet[] = 'Hindari lemak jenuh, gorengan, dan alkohol.';
+            $recDiet[] = 'Perbanyak sayur, buah, dan makanan tinggi antioksidan.';
+        }
+
+        // Hiperurisemia
+        if (($groupScores['hiperurisemia'] ?? 0) >= 50) {
+            $recDiet[] = 'Batasi makanan tinggi purin (jeroan, seafood tertentu).';
+            $recDiet[] = 'Perbanyak konsumsi air putih.';
+        }
+
+        // Hemodinamik
+        if (($groupScores['hemodinamik'] ?? 0) >= 50) {
+            $recExercise[] = 'Hindari olahraga intensitas tinggi tanpa pengawasan.';
+            $recExercise[] = 'Pilih aktivitas fisik stabil dan terkontrol.';
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 4. Rekomendasi prioritas (kelompok tingkat 3 / kritis)
+    |--------------------------------------------------------------------------
+    */
+        $priorityGroups = [];
+
+        foreach ($groupScores as $group => $score) {
+            if ($score >= 70) {
+                $priorityGroups[$group] = $score;
+            }
+        }
+
+        arsort($priorityGroups); // urutkan dari skor tertinggi
+
+        foreach ($priorityGroups as $group => $score) {
+            $groupName = ucwords(str_replace('_', ' ', $group));
+
+            $recNotes[] = sprintf(
+                '%s (Skor %.1f – Tingkat 3 – Kritis): Disarankan perhatian khusus dan konsultasi lebih lanjut dengan dokter terkait.',
+                $groupName,
+                $score
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 5. Output akhir
+    |--------------------------------------------------------------------------
+    */
         return [
-            'risk_label'   => 'Risiko Tinggi',
-            'rec_diet'     =>
-                "✅ Pola Makan yang Dianjurkan:\n" .
-                "• Diet DASH atau diet mediterania: kaya sayuran, buah, biji-bijian, ikan\n" .
-                "• Batasi karbohidrat: porsi nasi ≤ ½ piring, prioritaskan sayuran\n" .
-                "• Protein tanpa lemak: ikan laut (salmon, tuna), tahu, tempe, kacang-kacangan\n" .
-                "• Konsumsi makanan tinggi kalium: pisang, alpukat, kentang rebus\n" .
-                "• Kurangi natrium: target < 1.500 mg/hari\n\n" .
-                "🚫 Makanan yang Harus Dihindari:\n" .
-                "• Semua makanan tinggi gula: kue, es krim, minuman manis\n" .
-                "• Daging olahan: sosis, nugget, kornet, bacon\n" .
-                "• Lemak trans & jenuh: margarin, minyak kelapa sawit berlebih, gorengan\n" .
-                "• Alkohol dan minuman berenergi\n" .
-                "• Makanan tinggi purin (jika asam urat tinggi): jeroan, kacang-kacangan berlebih, seafood",
-
-            'rec_exercise' =>
-                "🏃 Rekomendasi Olahraga: Aktivitas Ringan Terstruktur\n" .
-                "• Mulai dengan jalan kaki 20–30 menit, 3–5x/minggu (intensitas ringan)\n" .
-                "• Hindari olahraga berat atau kompetitif tanpa izin dokter\n" .
-                "• Senam ringan atau yoga untuk relaksasi dan kontrol tekanan darah\n" .
-                "• Lakukan pemanasan dan pendinginan setiap sesi olahraga\n" .
-                "⚠️ Konsultasikan program olahraga dengan dokter sebelum memulai",
-
-            'rec_notes'    =>
-                'Status kesehatan Anda berada pada kategori RISIKO TINGGI. Segera konsultasikan ke ' .
-                'dokter perusahaan atau dokter spesialis untuk penatalaksanaan lebih lanjut. ' .
-                'Pemantauan tekanan darah, gula darah, dan kolesterol secara rutin sangat dianjurkan.',
+            'risk_label'        => $level,
+            'duration'     => $duration,
+            'rec_diet'     => array_values(array_unique($recDiet)),
+            'rec_exercise' => array_values(array_unique($recExercise)),
+            'rec_notes'    => $recNotes,
         ];
     }
 
@@ -538,23 +578,99 @@ class FuzzyMamdaniService
      */
     public function process(array $inputs): array
     {
-        // Tahap 1: Fuzzifikasi
-        $memberships = $this->fuzzify($inputs);
+        /*
+    |--------------------------------------------------------------------------
+    | 1. FUZZY GLOBAL (tetap dipakai)
+    |--------------------------------------------------------------------------
+    */
+        $memberships  = $this->fuzzify($inputs);
+        $ruleOutputs  = $this->applyRules($memberships);
+        $globalScore  = $this->defuzzify($ruleOutputs);
 
-        // Tahap 2: Evaluasi aturan
-        $ruleOutputs = $this->applyRules($memberships);
+        /*
+    |--------------------------------------------------------------------------
+    | 2. SKOR PER KELOMPOK (berbasis parameter dominan)
+    |--------------------------------------------------------------------------
+    | Catatan akademik:
+    | Setiap kelompok direpresentasikan oleh parameter MCU yang paling relevan
+    */
 
-        // Tahap 3: Defuzzifikasi Centroid
-        $riskScore = $this->defuzzify($ruleOutputs);
+        $groupScores = [
+            'obesitas_metabolik' => $this->defuzzify(
+                $this->applyRules([
+                    'bmi' => $memberships['bmi']
+                ] + $memberships)
+            ),
 
-        // Tahap 4: Pemetaan ke rekomendasi
-        $recommendation = $this->generateRecommendation($riskScore);
+            'diabetes' => $this->defuzzify(
+                $this->applyRules([
+                    'glukosa' => $memberships['glukosa']
+                ] + $memberships)
+            ),
 
+            'kardiovaskular' => $this->defuzzify(
+                $this->applyRules([
+                    'sistolik' => $memberships['sistolik'],
+                    'kolesterol' => $memberships['kolesterol']
+                ] + $memberships)
+            ),
+
+            'ginjal' => $this->defuzzify(
+                $this->applyRules([
+                    'asam_urat' => $memberships['asam_urat']
+                ] + $memberships)
+            ),
+
+            'hati' => $this->defuzzify(
+                $this->applyRules([
+                    'trigliserida' => $memberships['trigliserida']
+                ] + $memberships)
+            ),
+
+            'hiperurisemia' => $this->defuzzify(
+                $this->applyRules([
+                    'asam_urat' => $memberships['asam_urat']
+                ] + $memberships)
+            ),
+
+            'hemodinamik' => $this->defuzzify(
+                $this->applyRules([
+                    'sistolik' => $memberships['sistolik']
+                ] + $memberships)
+            ),
+        ];
+
+        /*
+    |--------------------------------------------------------------------------
+    | 3. RATA-RATA SKOR
+    |--------------------------------------------------------------------------
+    */
+        $averageScore = round(
+            array_sum($groupScores) / count($groupScores),
+            2
+        );
+
+        /*
+    |--------------------------------------------------------------------------
+    | 4. GENERATE REKOMENDASI (VERSI BARU)
+    |--------------------------------------------------------------------------
+    */
+        $recommendation = $this->generateRecommendation(
+            $averageScore,
+            $groupScores
+        );
+
+        /*
+    |--------------------------------------------------------------------------
+    | 5. OUTPUT
+    |--------------------------------------------------------------------------
+    */
         return array_merge(
             [
-                'memberships'  => $memberships,
-                'rule_outputs' => $ruleOutputs,
-                'risk_score'   => $riskScore,
+                'memberships'   => $memberships,
+                'group_scores'  => $groupScores,
+                'global_score'  => $globalScore,
+                'risk_score'    => $averageScore,
             ],
             $recommendation
         );

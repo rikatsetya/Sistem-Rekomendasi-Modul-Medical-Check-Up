@@ -60,7 +60,7 @@ class Recommendation extends Model
         'bmi'          => 'float',
         'sistolik'     => 'float',
         'diastolik'    => 'float',
-        'glukosa_puasa'=> 'float',
+        'glukosa_puasa' => 'float',
         'kolesterol'   => 'float',
         'asam_urat'    => 'float',
         'trigliserida' => 'float',
@@ -108,8 +108,8 @@ class Recommendation extends Model
     {
         return match ($this->risk_label) {
             'Sehat'        => 'bg-label-success',
-            'Risiko Sedang'=> 'bg-label-warning',
-            'Risiko Tinggi'=> 'bg-label-danger',
+            'Risiko Sedang' => 'bg-label-warning',
+            'Risiko Tinggi' => 'bg-label-danger',
             default        => 'bg-label-secondary',
         };
     }
