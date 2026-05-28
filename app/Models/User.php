@@ -36,6 +36,7 @@ class User extends Authenticatable
 
     protected $casts = [
         'dob' => 'date',
+        'password' => 'hashed'
     ];
 
     public function values()

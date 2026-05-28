@@ -22,7 +22,7 @@
                         <select name="tahun" id="tahun" class="form-select select2" required>
                             @php
                                 $currentYear = now()->year;
-                                $years = range($currentYear - 20, $currentYear + 1);
+                                $years = range($currentYear - 20, $currentYear);
                                 rsort($years);
                             @endphp
                             @foreach ($years as $year)

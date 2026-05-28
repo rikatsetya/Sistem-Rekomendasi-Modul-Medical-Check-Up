@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\Recommendation;
 use App\Models\SubCategory;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $userId = 1;
+        $userId = Auth::user()->id;
 
         if ($request->has('user_id')) {
             try {
@@ -44,9 +45,29 @@ class HomeController extends Controller
             }
         ])->get();
 
-        $user = User::where('kopeg', Auth::user()->kopeg)->pluck('name','id');
+        $user = User::where('kopeg', Auth::user()->kopeg)->pluck('name', 'id');
+
+        $selectedYear = $request->get('tahun', now()->year);
+
+        // Ambil recommendation FINAL (published) untuk user & tahun
+        $recommendations = Recommendation::where('user_id', $userId)
+            ->where('status', 'published')
+            ->where('tahun', $selectedYear)
+            ->first(); // <-- penting: first(), bukan get()
+
+        $notesNow    = $recommendations?->rec_notes;
+        $makananNow  = $recommendations?->rec_diet;
+        $olahragaNow = $recommendations?->rec_exercise;
 
         // return response()->json([$subCategory]);
-        return view('home',compact('subCategory','user','userId'));
+        return view('home', compact(
+            'subCategory',
+            'user',
+            'userId',
+            'recommendations',
+            'notesNow',
+            'makananNow',
+            'olahragaNow'
+        ));
     }
 }

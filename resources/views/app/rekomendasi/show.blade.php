@@ -3,8 +3,8 @@
 @push('style')
     <style>
         /* ============================================================
-                                   RISK SCORE GAUGE
-                                   ============================================================ */
+                                       RISK SCORE GAUGE
+                                       ============================================================ */
         .score-gauge {
             font-size: 3.2rem;
             font-weight: 800;
@@ -24,8 +24,8 @@
         }
 
         /* ============================================================
-                                   MEMBERSHIP BAR
-                                   ============================================================ */
+                                       MEMBERSHIP BAR
+                                       ============================================================ */
         .mf-bar-wrap {
             height: 16px;
             border-radius: 6px;
@@ -46,8 +46,8 @@
         }
 
         /* ============================================================
-                                   RECOMMENDATION TEXTAREAS
-                                   ============================================================ */
+                                       RECOMMENDATION TEXTAREAS
+                                       ============================================================ */
         .rec-area {
             min-height: 130px;
             font-size: .875rem;
@@ -57,8 +57,8 @@
         }
 
         /* ============================================================
-                                   STATUS BANNER
-                                   ============================================================ */
+                                       STATUS BANNER
+                                       ============================================================ */
         .status-banner {
             border-radius: 10px;
             padding: .75rem 1.25rem;
@@ -184,9 +184,9 @@
                     </div>
                     <div
                         class="score-gauge
-                    {{ $rec->risk_label === 'Sehat'
+                    {{ $rec->risk_label === 'Ringan'
                         ? 'score-sehat'
-                        : ($rec->risk_label === 'Risiko Sedang'
+                        : ($rec->risk_label === 'Sedang'
                             ? 'score-sedang'
                             : 'score-tinggi') }}">
                         {{ number_format($rec->risk_score, 2) }}
@@ -195,8 +195,8 @@
 
                     @php
                         $riskBadge = match ($rec->risk_label) {
-                            'Sehat' => 'bg-label-success',
-                            'Risiko Sedang' => 'bg-label-warning',
+                            'Ringan' => 'bg-label-success',
+                            'Sedang' => 'bg-label-warning',
                             default => 'bg-label-danger',
                         };
                     @endphp
@@ -207,11 +207,11 @@
                         <div class="mf-bar-wrap" style="height:14px;">
                             <div class="mf-bar"
                                 style="width:{{ $rec->risk_score }}%;
-                                    background: {{ $rec->risk_label === 'Sehat' ? '#1a8a4a' : ($rec->risk_label === 'Risiko Sedang' ? '#c0560c' : '#b91c1c') }};">
+                                    background: {{ $rec->risk_label === 'Ringan' ? '#1a8a4a' : ($rec->risk_label === 'Sedang' ? '#c0560c' : '#b91c1c') }};">
                             </div>
                         </div>
                         <div class="d-flex justify-content-between small text-muted mt-1">
-                            <span>0</span><span>Sehat · Sedang · Tinggi</span><span>100</span>
+                            <span>0</span><span>Ringan · Sedang · Tinggi</span><span>100</span>
                         </div>
                     </div>
                 </div>
@@ -391,8 +391,8 @@
                                     : []);
                         @endphp
 
-                        <textarea name="rec_notes" class="form-control" rows="4" id="rec_notes">
-{{ old('rec_notes', $noteItems ? "• " . implode("\n• ", $noteItems) : $rec->rec_notes) }}
+                        <textarea name="rec_notes" class="form-control" rows="6" id="rec_notes">
+{{ old('rec_notes', $noteItems ? '• ' . implode("\n• ", $noteItems) : $rec->rec_notes) }}
 </textarea>
                     </div>
                 </div>
@@ -414,62 +414,60 @@
                         @endphp
 
                         <textarea name="doctor_notes" class="form-control" rows="4" id="doctor_notes">
-{{ old('doctor_notes', $noteDoc ? "• " . implode("\n• ", $noteDoc) : $rec->doctor_notes) }}
+{{ old('doctor_notes', $noteDoc ? '• ' . implode("\n• ", $noteDoc) : $rec->doctor_notes) }}
 </textarea>
                     </div>
-                    </div>
-                    <button type="button"
-             class="btn btn-primary px-4"
-             data-bs-toggle="modal"
-             data-bs-target="#confirmSaveModal">
-         <i class="ti tabler-device-floppy me-2"></i>Simpan Perubahan
-     </button>
                 </div>
+                <button type="button" class="btn btn-primary px-4" data-bs-toggle="modal"
+                    data-bs-target="#confirmSaveModal">
+                    <i class="ti tabler-device-floppy me-2"></i>Simpan Perubahan
+                </button>
+        </div>
 
 
-            </form>
-            {{-- /validateForm --}}
-            {{-- ============================================================
+        </form>
+        {{-- /validateForm --}}
+        {{-- ============================================================
             MODAL KONFIRMASI SIMPAN PERUBAHAN
             ============================================================ --}}
-            <div class="modal fade" id="confirmSaveModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
+        <div class="modal fade" id="confirmSaveModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
 
-                        <div class="modal-header">
-                            <h5 class="modal-title">
-                                <i class="ti tabler-alert-circle text-warning me-2"></i>
-                                Konfirmasi Perubahan
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <p class="mb-0">
-                                Anda yakin ingin <strong>menyimpan perubahan rekomendasi</strong> ini?
-                            </p>
-                            <small class="text-muted">
-                                Data akan diperbarui dan status rekomendasi akan disimpan sebagai draft.
-                            </small>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                                Batal
-                            </button>
-
-                            {{-- Tombol submit form --}}
-                            <button type="button" class="btn btn-primary"
-                                onclick="document.getElementById('validateForm').submit();">
-                                <i class="ti tabler-device-floppy me-1"></i>Ya, Simpan
-                            </button>
-                        </div>
-
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="ti tabler-alert-circle text-warning me-2"></i>
+                            Konfirmasi Perubahan
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
+
+                    <div class="modal-body">
+                        <p class="mb-0">
+                            Anda yakin ingin <strong>menyimpan perubahan rekomendasi</strong> ini?
+                        </p>
+                        <small class="text-muted">
+                            Data akan diperbarui dan status rekomendasi akan disimpan sebagai draft.
+                        </small>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                            Batal
+                        </button>
+
+                        {{-- Tombol submit form --}}
+                        <button type="button" class="btn btn-primary"
+                            onclick="document.getElementById('validateForm').submit();">
+                            <i class="ti tabler-device-floppy me-1"></i>Ya, Simpan
+                        </button>
+                    </div>
+
                 </div>
             </div>
+        </div>
 
-        </div>{{-- /kolom kanan --}}
+    </div>{{-- /kolom kanan --}}
 
     </div>{{-- /row --}}
 @endsection

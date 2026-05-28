@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Recommendation;
 use App\Models\SubCategory;
 use App\Models\User;
 use App\Models\Value;
@@ -19,7 +20,7 @@ class ValueController extends Controller
         $this->authorize('view-any', Value::class);
 
         $user = User::pluck('name', 'id');
-        $userId = 1;
+        $userId = Auth()->user()->id;
 
         if ($request->has('user_id')) {
             try {
@@ -36,7 +37,28 @@ class ValueController extends Controller
             }
         ])->get();
 
-        return view('app.value.index', compact('subCategory', 'user', 'userId'));
+        $selectedYear = $request->get('year', now()->year);
+
+        // Ambil recommendation FINAL (published) untuk user & tahun
+        $recommendations = Recommendation::where('user_id', $userId)
+            ->where('status', 'published')
+            ->where('tahun', $selectedYear)
+            ->first(); // <-- penting: first(), bukan get()
+
+        $notesNow    = $recommendations?->rec_notes;
+        $makananNow  = $recommendations?->rec_diet;
+        $olahragaNow = $recommendations?->rec_exercise;
+
+        return view('app.value.index', compact(
+            'subCategory',
+            'user',
+            'userId',
+            'recommendations',
+            'notesNow',
+            'makananNow',
+            'olahragaNow'
+        ));
+
     }
 
 
@@ -343,7 +365,7 @@ class ValueController extends Controller
         }
     }
 
-    public function kesimpulanSaran($id)
+    public function kesimpulanSaran(Request $request, $id)
     {
         $userId = User::find(decrypt($id))->id;
         try {
@@ -366,8 +388,32 @@ class ValueController extends Controller
                 ];
             })->values();
 
+            $availableYears = Recommendation::where('user_id', $userId)
+                ->where('status', 'published')
+                ->orderBy('tahun', 'desc')
+                ->pluck('tahun')
+                ->unique()
+                ->values();
+
+            $selectedYear = $request->get('tahun', now()->year);
+
+            // Ambil recommendation FINAL (published) untuk user & tahun
+            $recommendations = Recommendation::where('user_id', $userId)
+                ->where('status', 'published')
+                ->where('tahun', $selectedYear)
+                ->first();
+
+            $notesNow    = $recommendations?->rec_notes;
+            $makananNow  = $recommendations?->rec_diet;
+            $olahragaNow = $recommendations?->rec_exercise;
+
             return view('app.statistic.kesimpulan-saran', [
-                'tandaVital' => $grouped
+                'tandaVital' => $grouped,
+                'notesNow' => $notesNow,
+                'makananNow' => $makananNow,
+                'olahragaNow' => $olahragaNow,
+                'availableYears' => $availableYears,
+                'selectedYear' => $selectedYear,
             ]);
         } catch (\Throwable $th) {
             Log::error('General error: ' . $th->getMessage());

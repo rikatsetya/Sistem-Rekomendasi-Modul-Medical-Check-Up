@@ -87,19 +87,24 @@ class Recommendation extends Model
     // Helpers
     // -------------------------------------------------------------------------
 
-    /** Apakah rekomendasi sudah divalidasi dokter (approved atau rejected)? */
+    /**
+     * Apakah rekomendasi sudah final (dipublish)
+     */
     public function isValidated(): bool
     {
-        return in_array($this->status, ['approved', 'rejected']);
+        return $this->status === 'published';
     }
 
-    /** Badge CSS class berdasarkan status */
+    /**
+     * Badge CSS class berdasarkan status rekomendasi
+     */
     public function statusBadgeClass(): string
     {
         return match ($this->status) {
-            'approved' => 'bg-label-success',
-            'rejected' => 'bg-label-danger',
-            default    => 'bg-label-warning',
+            'raw'       => 'bg-label-secondary',
+            'draft'     => 'bg-label-warning',
+            'published' => 'bg-label-success',
+            default     => 'bg-label-secondary',
         };
     }
 
