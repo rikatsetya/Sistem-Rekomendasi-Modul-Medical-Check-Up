@@ -73,17 +73,6 @@
                 </li>
             @endif
 
-            {{-- Menu Rekomendasi Saya: tampil untuk karyawan biasa --}}
-            @if(Auth::user()->hasRole('user') && !Auth::user()->hasRole('Dokter'))
-                <li class="menu-item {{ request()->routeIs('rekomendasi.saya') ? 'active' : '' }}">
-                    <a href="{{ route('rekomendasi.saya', encrypt(Auth::id())) }}" class="menu-link">
-                        <i class="menu-icon ti tabler-heartbeat"></i>
-                        <div>Rekomendasi Saya</div>
-                    </a>
-                </li>
-            @endif
-
-
             <!-- Access Management -->
             @if (Auth::user()->can('view-any', App\Models\User::class) ||
                     Auth::user()->can('view-any', Spatie\Permission\Models\Role::class) ||

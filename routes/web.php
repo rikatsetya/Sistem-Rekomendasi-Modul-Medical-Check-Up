@@ -10,6 +10,7 @@ use App\Http\Controllers\SubCategoryController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ValueController;
 use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\RecommendationRuleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,7 @@ Route::prefix('/')
 
         Route::resource('categories', CategoryController::class);
         Route::resource('sub-categories', SubCategoryController::class);
+        Route::resource('recommendation-rules', RecommendationRuleController::class);
         Route::get('/value', [ValueController::class, 'index'])->name('value');
         Route::post('/value/import', [ValueController::class, 'import'])->name('value.import');
 

@@ -2,6 +2,20 @@
 
 @push('style')
     <style>
+        .card.hovering {
+            transition: all 0.3s ease;
+            /* smooth animation */
+        }
+
+        .card.hovering:hover {
+            transform: scale(1.02);
+            /* expand a bit */
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+            /* blue glow */
+            z-index: 2;
+            /* bring it to front */
+        }
+
         /* ---- Stat cards ---- */
         .stat-card {
             border-left: 4px solid;
@@ -71,15 +85,38 @@
     {{-- =========================================================
      HEADER CARD
      ========================================================= --}}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4 class="mb-0">
-                <i class="ti tabler-heartbeat text-danger me-2"></i>Sistem Rekomendasi Kesehatan
-                <span class="badge bg-label-secondary ms-2 fs-6 align-middle">Fuzzy Mamdani</span>
-            </h4>
-            <small class="text-muted">
-                Bangkitkan &amp; validasi rekomendasi diet dan olahraga berbasis data MCU per tahun
-            </small>
+    <div class="row g-3 mb-2 align-items-stretch">
+        <div class="col-md-8 d-flex">
+            <div class="card mb-2 h-95 w-100">
+                <div class="card-header">
+                    <h4 class="mb-1">
+                        <i class="ti tabler-heartbeat text-danger me-2"></i>
+                        Sistem Rekomendasi Kesehatan
+                        <span class="badge bg-label-secondary ms-2 fs-6 align-middle">
+                            Fuzzy Mamdani
+                        </span>
+                    </h4>
+                    <small class="text-muted">
+                        Bangkitkan &amp; validasi rekomendasi diet dan olahraga berbasis data MCU per tahun
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 d-flex">
+            <a href="{{ route('recommendation-rules.index') }}">
+            <div class="card mb-2 h-95 w-100 hovering bg-primary">
+                <div class="card-header">
+                    <h6 class="mb-0 text-white">
+                        <i class="ti tabler-heartbeat text-danger me-2"></i>
+                        Aturan Rekomendasi (Rules)
+                    </h6>
+                    <small class="text-muted text-white">
+                        Atur aturan rekomendasi (rule) untuk tiap kategori risiko
+                    </small>
+                </div>
+            </div>
+            </a>
         </div>
     </div>
 
@@ -155,7 +192,7 @@
             <div class="card stat-card pending h-100">
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="avatar avatar-lg bg-label-secondary rounded">
-                        <i class="ti tabler-clock-hour4 ti-lg"></i>
+                        <i class="icon-base ti tabler-clock"></i>
                     </div>
                     <div>
                         <div class="text-muted small">Data Mentah ({{ $selectedYear }})</div>

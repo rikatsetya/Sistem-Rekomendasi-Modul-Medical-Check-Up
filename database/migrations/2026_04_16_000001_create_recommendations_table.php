@@ -53,8 +53,8 @@ return new class extends Migration {
             // ----------------------------------------------------------------
             // Validasi Dokter
             // ----------------------------------------------------------------
-            // Status: pending → approved / rejected
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            // Status: raw->draft->pubished
+            $table->enum('status', ['raw', 'draft', 'published'])->default('raw');
 
             // Dokter yang memvalidasi (nullable sampai divalidasi)
             $table->unsignedBigInteger('doctor_id')->nullable();

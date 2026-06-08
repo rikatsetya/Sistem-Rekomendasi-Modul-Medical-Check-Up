@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\RecommendationRule;
+
 /**
  * ============================================================================
  * FuzzyMamdaniService
@@ -427,17 +429,19 @@ class FuzzyMamdaniService
      * @param  float  $riskScore  Skor hasil defuzzifikasi [0, 100]
      * @return array  ['risk_label', 'rec_diet', 'rec_exercise', 'rec_notes']
      */
+
     public function generateRecommendation(
         float $averageScore,
         array $groupScores
     ): array {
+
         $recDiet = [];
         $recExercise = [];
         $recNotes = [];
 
         /*
     |--------------------------------------------------------------------------
-    | 1. Tentukan tingkat intervensi global (berdasarkan rata-rata skor)
+    | 1. Tentukan tingkat risiko global
     |--------------------------------------------------------------------------
     */
         if ($averageScore <= 30) {
@@ -453,81 +457,49 @@ class FuzzyMamdaniService
 
         /*
     |--------------------------------------------------------------------------
-    | 2. Rekomendasi umum (baseline) – berdasarkan tingkat global
+    | 2. Ambil rekomendasi GLOBAL dari database
     |--------------------------------------------------------------------------
     */
-        if ($level === 'Ringan') {
-            $recDiet[] = 'Edukasi gizi seimbang dan pola makan sehat.';
-            $recExercise[] = 'Aktivitas fisik ringan seperti jalan santai minimal 30 menit/hari.';
-        }
+        $globalRules = RecommendationRule::query()
+            ->where('is_active', true)
+            ->where('group_code', 'global')
+            ->where('severity_level', $level)
+            ->get();
 
-        if ($level === 'Sedang') {
-            $recDiet[] = 'Defisit kalori 400–500 kkal/hari dari kebutuhan basal.';
-            $recDiet[] = 'Komposisi makronutrien: karbohidrat kompleks 50–60%, protein 15–20%, lemak sehat 25–30%.';
-            $recDiet[] = 'Asupan serat minimal 25 gram/hari dari sayur dan buah utuh.';
-            $recExercise[] = 'Aerobik intensitas sedang ±150 menit/minggu (jalan cepat, bersepeda ringan).';
-            $recExercise[] = 'Latihan kekuatan 2x/minggu (squat, push-up, bodyweight).';
-        }
-
-        if ($level === 'Tinggi') {
-            $recDiet[] = 'Pengaturan pola makan ketat dan terstruktur dengan pengawasan tenaga kesehatan.';
-            $recExercise[] = 'Aktivitas fisik terkontrol dan disesuaikan kondisi medis.';
+        foreach ($globalRules as $rule) {
+            match ($rule->category) {
+                'diet'     => $recDiet[]     = $rule->recommendation_text,
+                'exercise' => $recExercise[] = $rule->recommendation_text,
+                'note'     => $recNotes[]    = $rule->recommendation_text,
+            };
         }
 
         /*
     |--------------------------------------------------------------------------
-    | 3. Rekomendasi spesifik per kelompok (kontekstual & rasional)
+    | 3. Rekomendasi per kelompok risiko (dynamic)
     |--------------------------------------------------------------------------
     */
+        foreach ($groupScores as $groupCode => $score) {
 
-        // Obesitas Metabolik
-        if (($groupScores['obesitas_metabolik'] ?? 0) >= 50) {
-            $recDiet[] = 'Fokus pada defisit kalori bertahap dan kontrol porsi makan.';
-            $recExercise[] = 'Aerobik rutin dan peningkatan aktivitas harian (NEAT).';
-        }
+            $groupRules = RecommendationRule::query()
+                ->where('is_active', true)
+                ->where('group_code', $groupCode)
+                ->where('min_score', '<=', $score)
+                ->where('max_score', '>=', $score)
+                ->get();
 
-        // Diabetes
-        if (($groupScores['diabetes'] ?? 0) >= 50) {
-            $recDiet[] = 'Batasi gula sederhana dan indeks glikemik tinggi.';
-            $recDiet[] = 'Distribusi karbohidrat merata sepanjang hari.';
-            $recExercise[] = 'Aktivitas aerobik teratur untuk meningkatkan sensitivitas insulin.';
-        }
-
-        // Kardiovaskular
-        if (($groupScores['kardiovaskular'] ?? 0) >= 50) {
-            $recDiet[] = 'Batasi lemak jenuh dan kolesterol.';
-            $recDiet[] = 'Konsumsi lemak sehat (ikan, kacang-kacangan, minyak zaitun).';
-            $recExercise[] = 'Olahraga aerobik intensitas sedang dengan monitoring denyut nadi.';
-        }
-
-        // Ginjal
-        if (($groupScores['ginjal'] ?? 0) >= 50) {
-            $recDiet[] = 'Perhatikan asupan protein agar tidak berlebihan.';
-            $recDiet[] = 'Hindari konsumsi garam berlebih dan makanan olahan.';
-            $recExercise[] = 'Aktivitas fisik ringan–sedang, hindari dehidrasi.';
-        }
-
-        // Hati
-        if (($groupScores['hati'] ?? 0) >= 50) {
-            $recDiet[] = 'Hindari lemak jenuh, gorengan, dan alkohol.';
-            $recDiet[] = 'Perbanyak sayur, buah, dan makanan tinggi antioksidan.';
-        }
-
-        // Hiperurisemia
-        if (($groupScores['hiperurisemia'] ?? 0) >= 50) {
-            $recDiet[] = 'Batasi makanan tinggi purin (jeroan, seafood tertentu).';
-            $recDiet[] = 'Perbanyak konsumsi air putih.';
-        }
-
-        // Hemodinamik
-        if (($groupScores['hemodinamik'] ?? 0) >= 50) {
-            $recExercise[] = 'Hindari olahraga intensitas tinggi tanpa pengawasan.';
-            $recExercise[] = 'Pilih aktivitas fisik stabil dan terkontrol.';
+            foreach ($groupRules as $rule) {
+                match ($rule->category) {
+                    'diet'     => $recDiet[]     = $rule->recommendation_text,
+                    'exercise' => $recExercise[] = $rule->recommendation_text,
+                    'note'     => $recNotes[]    = $rule->recommendation_text,
+                };
+            }
         }
 
         /*
     |--------------------------------------------------------------------------
-    | 4. Rekomendasi prioritas (kelompok tingkat 3 / kritis)
+    | 4. Catatan prioritas (kelompok kritis)
     |--------------------------------------------------------------------------
     */
         $priorityGroups = [];
@@ -538,7 +510,7 @@ class FuzzyMamdaniService
             }
         }
 
-        arsort($priorityGroups); // urutkan dari skor tertinggi
+        arsort($priorityGroups);
 
         foreach ($priorityGroups as $group => $score) {
             $groupName = ucwords(str_replace('_', ' ', $group));
@@ -552,15 +524,15 @@ class FuzzyMamdaniService
 
         /*
     |--------------------------------------------------------------------------
-    | 5. Output akhir
+    | 5. OUTPUT (TIDAK DIUBAH)
     |--------------------------------------------------------------------------
     */
         return [
-            'risk_label'        => $level,
-            'duration'     => $duration,
+            'risk_label'   => $level,
+            'duration'    => $duration,
             'rec_diet'     => array_values(array_unique($recDiet)),
             'rec_exercise' => array_values(array_unique($recExercise)),
-            'rec_notes'    => $recNotes,
+            'rec_notes'    => array_values(array_unique($recNotes)),
         ];
     }
 
