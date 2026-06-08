@@ -9,6 +9,7 @@ use App\Services\FuzzyMamdaniService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Encryption\DecryptException;
 
 /**
  * RecommendationController
@@ -49,45 +50,71 @@ class RecommendationController extends Controller
      */
     public function index(Request $request)
     {
-        // Ambil semua tahun yang memiliki data MCU
+        /**
+         * ==============================
+         * AVAILABLE YEARS
+         * ==============================
+         */
         $availableYears = Value::distinct()
             ->orderByDesc('tahun')
             ->pluck('tahun');
 
-        // Tahun terpilih (default: terbaru)
         $selectedYear = $request->get(
             'tahun',
             $availableYears->first() ?? date('Y')
         );
 
-        // Semua karyawan (peran = 2)
-        $users = User::where('peran', 2)
-            ->orderBy('name')
-            ->get();
+        /**
+         * ==============================
+         * SEARCH PARAM
+         * ==============================
+         */
+        $search = trim($request->get('search'));
 
-        // Semua rekomendasi untuk tahun terpilih
+        /**
+         * ==============================
+         * USERS QUERY (SERVER-SIDE)
+         * ==============================
+         */
+        $usersQuery = User::where('peran', 2)
+            ->orderBy('name');
+
+        if ($search) {
+            $usersQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('kopeg', 'like', "%{$search}%")
+                    ->orWhere('divisi', 'like', "%{$search}%");
+            });
+        }
+
+        $perPage = (int) $request->get('per_page', 10); // default 10
+        $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
+        // SERVER-SIDE PAGINATION
+        $users = $usersQuery->paginate($perPage)->withQueryString();
+
+        /**
+         * ==============================
+         * RECOMMENDATIONS (YEAR-BASED)
+         * ==============================
+         */
         $recsByUser = Recommendation::where('tahun', $selectedYear)
             ->get()
             ->keyBy('user_id');
 
         /**
          * ==============================
-         * STATISTIK STATUS (NEW FLOW)
+         * STATISTICS
          * ==============================
          */
-
-        // Generated tapi belum dipublish
         $generatedCount = $recsByUser
             ->where('status', 'draft')
             ->count();
 
-        // Sudah dipublish
         $publishedCount = $recsByUser
             ->where('status', 'published')
             ->count();
 
-        // Data mentah (belum ada rekomendasi sama sekali)
-        $rawCount = $users->count() - $recsByUser->count();
+        $rawCount = $users->total() - $recsByUser->count();
 
         return view('app.rekomendasi.index', compact(
             'users',
@@ -96,7 +123,8 @@ class RecommendationController extends Controller
             'selectedYear',
             'rawCount',
             'generatedCount',
-            'publishedCount'
+            'publishedCount',
+            'search'
         ));
     }
 
@@ -251,124 +279,108 @@ class RecommendationController extends Controller
     // 4. SHOW — Detail + form validasi + navigasi prev/next
     // =========================================================================
 
-    /**
-     * Tampilkan detail rekomendasi satu karyawan beserta form validasi.
-     * Menyertakan ID rekomendasi sebelumnya dan berikutnya (dalam tahun yang sama,
-     * diurutkan berdasarkan nama karyawan) untuk navigasi kiri/kanan.
-     *
-     * Route: GET /rekomendasi/{id}?tahun=2025
-     */
-    public function show(int $id, Request $request)
-    {
-        $rec   = Recommendation::with('user', 'doctor')->findOrFail($id);
-        $tahun = $request->get('tahun', $rec->tahun);
-
-        // Ambil daftar ID rekomendasi untuk tahun yang sama,
-        // diurutkan berdasarkan nama karyawan → konsisten untuk navigasi
-        $allRecIds = Recommendation::where('tahun', $tahun)
-            ->join('users', 'recommendations.user_id', '=', 'users.id')
-            ->orderBy('users.name')
-            ->pluck('recommendations.id')
-            ->values();  // re-index dari 0
-
-        $currentIndex = $allRecIds->search($id);
-
-        $prevId = ($currentIndex !== false && $currentIndex > 0)
-            ? $allRecIds[$currentIndex - 1]
-            : null;
-
-        $nextId = ($currentIndex !== false && $currentIndex < $allRecIds->count() - 1)
-            ? $allRecIds[$currentIndex + 1]
-            : null;
-
-        // Posisi untuk label navigasi (misal: "3 / 10")
-        $position = $currentIndex !== false ? ($currentIndex + 1) : '?';
-        $total    = $allRecIds->count();
-
-        return view('app.rekomendasi.show', compact(
-            'rec',
-            'prevId',
-            'nextId',
-            'tahun',
-            'position',
-            'total'
-        ));
-    }
-
-    // =========================================================================
-// 5. UPDATE RECOMMENDATION — save as draft
-// =========================================================================
-
-    /**
-     * Simpan perubahan rekomendasi dokter.
-     * Status akan selalu dikembalikan ke 'drafted'.
-     *
-     * Route: PUT /rekomendasi/{id}
-     */
-    public function update(Request $request, int $id)
-    {
-        $request->validate([
-            'rec_diet'     => 'nullable|string',
-            'rec_exercise' => 'nullable|string',
-            'rec_notes'    => 'nullable|string',
-            'doctor_notes' => 'nullable|string|max:1000',
-            'tahun'        => 'required',
-        ]);
-
-        $rec = Recommendation::findOrFail($id);
-        $tahun = $request->get('tahun', $rec->tahun);
-
-        $rec->update([
-            'rec_diet'     => $request->rec_diet,
-            'rec_exercise' => $request->rec_exercise,
-            'rec_notes'    => $request->rec_notes,
-            'doctor_notes' => $request->doctor_notes,
-
-            // status kembali ke draft
-            'status'       => 'draft',
-
-            // metadata editor terakhir
-            'doctor_id'    => auth()->id(),
-            'updated_at'   => now(),
-        ]);
-
-        return redirect()
-            ->route('rekomendasi.index', ['tahun' => $tahun])
-            ->with('success', 'Perubahan rekomendasi berhasil disimpan sebagai draft.');
-    }
-
-    // =========================================================================
-    // 6. EMPLOYEE VIEW — Read-only untuk karyawan
-    // =========================================================================
-
-    /**
-     * Tampilkan rekomendasi yang sudah di-approve dokter ke karyawan (read-only).
-     *
-     * Route: GET /rekomendasi-saya/{id}
-     */
-    public function employeeView(string $id)
+    public function show(string $id, Request $request)
     {
         try {
-            $userId = decrypt($id);
-        } catch (\Exception $e) {
-            return back()->with('error', 'ID tidak valid.');
+            // 🔐 decrypt first
+            $decryptedId = decrypt($id);
+
+            $rec   = Recommendation::with('user', 'doctor')->findOrFail($decryptedId);
+            $tahun = $request->get('tahun', $rec->tahun);
+
+            $allRecIds = Recommendation::where('tahun', $tahun)
+                ->join('users', 'recommendations.user_id', '=', 'users.id')
+                ->orderBy('users.name')
+                ->pluck('recommendations.id')
+                ->values();
+
+            $currentIndex = $allRecIds->search($rec->id);
+
+            $prevId = ($currentIndex !== false && $currentIndex > 0)
+                ? encrypt($allRecIds[$currentIndex - 1])
+                : null;
+
+            $nextId = ($currentIndex !== false && $currentIndex < $allRecIds->count() - 1)
+                ? encrypt($allRecIds[$currentIndex + 1])
+                : null;
+
+            $position = $currentIndex !== false ? ($currentIndex + 1) : '?';
+            $total    = $allRecIds->count();
+
+            return view('app.rekomendasi.show', compact(
+                'rec',
+                'prevId',
+                'nextId',
+                'tahun',
+                'position',
+                'total'
+            ));
+        } catch (DecryptException $e) {
+            return redirect()
+                ->back()
+                ->with('error', 'ID rekomendasi tidak valid.');
+        } catch (\Throwable $e) {
+            Log::error('Show Recommendation Error', [
+                'id'    => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->with('error', 'Terjadi kesalahan saat membuka detail rekomendasi.');
         }
+    }
 
-        // Karyawan hanya boleh melihat data milik sendiri
-        $authUser = Auth::user();
-        if (!$authUser->hasRole(['super-admin', 'Dokter']) && $authUser->id !== $userId) {
-            abort(403, 'Anda tidak diizinkan mengakses halaman ini.');
+    // =========================================================================
+    // 5. UPDATE RECOMMENDATION — save as draft
+    // =========================================================================
+
+    public function update(Request $request, string $id)
+    {
+        try {
+            // 🔐 decrypt first
+            $decryptedId = decrypt($id);
+
+            $request->validate([
+                'rec_diet'     => 'nullable|string',
+                'rec_exercise' => 'nullable|string',
+                'rec_notes'    => 'nullable|string',
+                'doctor_notes' => 'nullable|string|max:1000',
+                'tahun'        => 'required',
+            ]);
+
+            $rec   = Recommendation::findOrFail($decryptedId);
+            $tahun = $request->get('tahun', $rec->tahun);
+
+            $rec->update([
+                'rec_diet'     => $request->rec_diet,
+                'rec_exercise' => $request->rec_exercise,
+                'rec_notes'    => $request->rec_notes,
+                'doctor_notes' => $request->doctor_notes,
+
+                'status'       => 'draft',
+                'doctor_id'    => auth()->id(),
+                'updated_at'   => now(),
+            ]);
+
+            return redirect()
+                ->route('rekomendasi.index', ['tahun' => $tahun])
+                ->with('success', 'Perubahan rekomendasi berhasil disimpan sebagai draft.');
+        } catch (DecryptException $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'ID rekomendasi tidak valid.');
+        } catch (\Throwable $e) {
+            Log::error('Update Recommendation Error', [
+                'id'    => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan rekomendasi. Silakan coba lagi.');
         }
-
-        $user = User::findOrFail($userId);
-
-        // Hanya tampilkan yang sudah di-approve
-        $recommendations = Recommendation::where('user_id', $userId)
-            ->where('status', 'approved')
-            ->with('doctor')
-            ->orderByDesc('tahun')
-            ->get();
-
-        return view('app.rekomendasi.employee', compact('user', 'recommendations'));
     }
 }

@@ -1673,13 +1673,23 @@
                                 @endphp
 
                                 @if (!empty($items))
-                                    <ul class="mb-0 ps-3">
+                                    <ul class="mb-0 ps-5 clamp-list">
                                         @foreach ($items as $item)
                                             <li>{{ $item }}</li>
                                         @endforeach
                                     </ul>
+                                    <div class="text-end mt-2">
+                                        <span class="text-primary small fw-semibold">
+                                            Show more →
+                                        </span>
+                                    </div>
                                 @else
                                     <p class="mb-0 text-body">{{ $notesNow }}</p>
+                                    <div class="text-end mt-2">
+                                        <span class="text-primary small fw-semibold">
+                                            Show more →
+                                        </span>
+                                    </div>
                                 @endif
                             @else
                                 <p class="mb-0 text-muted fst-italic">
@@ -1724,13 +1734,23 @@
                                 @endphp
 
                                 @if (!empty($items))
-                                    <ul class="mb-0 ps-3">
+                                    <ul class="mb-0 ps-5 clamp-list">
                                         @foreach ($items as $item)
                                             <li>{{ $item }}</li>
                                         @endforeach
                                     </ul>
+                                    <div class="text-end mt-2">
+                                        <span class="text-primary small fw-semibold">
+                                            Show more →
+                                        </span>
+                                    </div>
                                 @else
                                     <p class="mb-0 text-body">{{ $makananNow }}</p>
+                                    <div class="text-end mt-2">
+                                        <span class="text-primary small fw-semibold">
+                                            Show more →
+                                        </span>
+                                    </div>
                                 @endif
                             @else
                                 <p class="mb-0 text-muted fst-italic">
@@ -1776,13 +1796,23 @@
                                 @endphp
 
                                 @if (!empty($items))
-                                    <ul class="mb-0 ps-3">
+                                    <ul class="mb-0 ps-5 clamp-list">
                                         @foreach ($items as $item)
                                             <li>{{ $item }}</li>
                                         @endforeach
                                     </ul>
+                                    <div class="text-end mt-2">
+                                        <span class="text-primary small fw-semibold">
+                                            Show more →
+                                        </span>
+                                    </div>
                                 @else
                                     <p class="mb-0 text-body">{{ $olahragaNow }}</p>
+                                    <div class="text-end mt-2">
+                                        <span class="text-primary small fw-semibold">
+                                            Show more →
+                                        </span>
+                                    </div>
                                 @endif
                             @else
                                 <p class="mb-0 text-muted fst-italic">

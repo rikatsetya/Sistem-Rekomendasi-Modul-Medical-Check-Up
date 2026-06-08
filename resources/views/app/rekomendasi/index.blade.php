@@ -105,17 +105,17 @@
 
         <div class="col-md-4 d-flex">
             <a href="{{ route('recommendation-rules.index') }}">
-            <div class="card mb-2 h-95 w-100 hovering bg-primary">
-                <div class="card-header">
-                    <h6 class="mb-0 text-white">
-                        <i class="ti tabler-heartbeat text-danger me-2"></i>
-                        Aturan Rekomendasi (Rules)
-                    </h6>
-                    <small class="text-muted text-white">
-                        Atur aturan rekomendasi (rule) untuk tiap kategori risiko
-                    </small>
+                <div class="card mb-2 h-95 w-100 hovering bg-primary">
+                    <div class="card-header">
+                        <h6 class="mb-0 text-white">
+                            <i class="ti tabler-heartbeat text-danger me-2"></i>
+                            Aturan Rekomendasi (Rules)
+                        </h6>
+                        <small class="text-muted text-white">
+                            Atur aturan rekomendasi (rule) untuk tiap kategori risiko
+                        </small>
+                    </div>
                 </div>
-            </div>
             </a>
         </div>
     </div>
@@ -242,8 +242,43 @@
             <span class="text-muted small">{{ $users->count() }} karyawan</span>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table id="rekomendasiTable" class="dt-multilingual table table-hover align-middle mb-0">
+            <div class="dataTables_wrapper dt-light">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    {{-- SHOW ENTRIES --}}
+                    <div class="dataTables_length">
+                        <form method="GET" class="d-flex align-items-center gap-2 mb-0">
+                            {{-- keep existing params --}}
+                            <input type="hidden" name="tahun" value="{{ $selectedYear }}">
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+
+                            <label class="mb-0 small fw-semibold">Show</label>
+
+                            <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+                                @foreach ([10, 25, 50] as $size)
+                                    <option value="{{ $size }}"
+                                        {{ request('per_page', 10) == $size ? 'selected' : '' }}>
+                                        {{ $size }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <span class="small">entries</span>
+                        </form>
+                    </div>
+
+                    {{-- SEARCH --}}
+                    <div class="dataTables_filter">
+                        <form method="GET" class="d-flex align-items-center gap-2 mb-0">
+                            <input type="hidden" name="tahun" value="{{ $selectedYear }}">
+                            <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
+
+                            <span class="small fw-semibold">Search</span>
+                            <input type="search" name="search" value="{{ request('search') }}"
+                                placeholder="Cari karyawan..." class="form-control form-control-sm">
+                        </form>
+                    </div>
+                </div>
+                <table class="dataTable table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
                             <th class="text-center" style="width:48px;">#</th>
@@ -262,7 +297,9 @@
                                 $rec = $recsByUser->get($user->id);
                             @endphp
                             <tr>
-                                <td class="text-center text-muted small">{{ $i + 1 }}</td>
+                                <td class="text-center text-muted small">
+                                    {{ $users->firstItem() + $i }}
+                                </td>
 
                                 {{-- Nama + Kopeg + Divisi --}}
                                 <td>
@@ -325,7 +362,7 @@
                                 {{-- Aksi: hanya tombol Detail (muncul jika ada rekomendasi) --}}
                                 <td class="text-center">
                                     @if ($rec)
-                                        <a href="{{ route('rekomendasi.show', $rec->id) }}?tahun={{ $selectedYear }}"
+                                        <a href="{{ route('rekomendasi.show', encrypt($rec->id)) }}?tahun={{ $selectedYear }}"
                                             class="btn btn-sm btn-outline-primary"
                                             title="Lihat detail &amp; validasi rekomendasi">
                                             <i class="ti tabler-eye me-1"></i>Detail
@@ -345,6 +382,41 @@
                         @endforelse
                     </tbody>
                 </table>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 flex-wrap gap-2">
+
+                    {{-- INFO TEXT --}}
+                    <div class="dataTables_info">
+                        Menampilkan
+                        {{ $users->firstItem() ?? 0 }}
+                        –
+                        {{ $users->lastItem() ?? 0 }}
+                        dari
+                        {{ $users->total() }}
+                        karyawan
+                    </div>
+
+                    {{-- PAGINATION --}}
+                    <div class="dataTables_paginate paging_simple_numbers">
+
+                        {{-- PREVIOUS --}}
+                        @if ($users->onFirstPage())
+                            <span class="paginate_button disabled">‹</span>
+                        @else
+                            <a href="{{ $users->previousPageUrl() }}" class="paginate_button">‹</a>
+                        @endif
+
+                        {{-- PAGE NUMBERS --}}
+                        @include('layouts.smart-pagination', ['paginator' => $users])
+
+                        {{-- NEXT --}}
+                        @if ($users->hasMorePages())
+                            <a href="{{ $users->nextPageUrl() }}" class="paginate_button">›</a>
+                        @else
+                            <span class="paginate_button disabled">›</span>
+                        @endif
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
@@ -363,14 +435,5 @@
             if (g) g.value = year;
             if (p) p.value = year;
         }
-
-        $(document).ready(function() {
-            // Inisialisasi DataTable untuk tabel karyawan
-            if (!$.fn.dataTable.isDataTable('#rekomendasiTable')) {
-                $('#rekomendasiTable').DataTable({
-                    responsive: true
-                });
-            }
-        });
     </script>
 @endpush

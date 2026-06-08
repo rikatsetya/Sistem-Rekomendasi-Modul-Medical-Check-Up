@@ -80,7 +80,7 @@
             </div>
 
             <div class="card-footer d-flex justify-content-end">
-                <a href="{{ route('recommendation-rules.edit', $rule->id) }}" class="btn btn-warning me-2">
+                <a href="{{ route('recommendation-rules.edit', encrypt($rule->id)) }}" class="btn btn-warning me-2">
                     Edit
                 </a>
                 <a href="{{ route('recommendation-rules.index') }}" class="btn btn-secondary">

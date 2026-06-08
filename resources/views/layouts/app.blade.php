@@ -63,14 +63,14 @@
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css" />
-    <link rel="stylesheet" href="{{ asset('vuexy/assets/css/datatables-custom.css') }}" />
+    {{-- <link rel="stylesheet" href="{{ asset('vuexy/assets/css/datatables-custom.css') }}" /> --}}
     <link rel="stylesheet" href="{{ asset('vuexy/assets/css/new-datatables.css') }}" />
 
 
     <!-- Helpers -->
     <script src="{{ asset('vuexy/assets/vendor/js/helpers.js') }}"></script>
     <!--! Template customizer & Theme config files MUST be included after core stylesheets and helpers.js in the <head> section -->
-    <script src="{{ asset('vuexy/assets/vendor/js/template-customizer.js') }}"></script>   
+    <script src="{{ asset('vuexy/assets/vendor/js/template-customizer.js') }}"></script>
     <!--? Config:  Mandatory theme config file contain global vars & default theme options, Set your preferred theme option in this file.  -->
 
     <script src="{{ asset('vuexy/assets/js/config.js') }}"></script>
@@ -99,6 +99,42 @@
 
         .select2-container {
             min-width: 110px !important;
+        }
+
+        /* Default (light) */
+        :root {
+            --clamp-fade-bg: #fff;
+        }
+
+        /* Dark mode (Bootstrap 5 / Vuexy compatible) */
+        html[data-bs-theme="dark"] {
+            --clamp-fade-bg: #2f3349;
+            /* Vuexy card background */
+        }
+
+        /* Clamp content inside cards */
+        .clamp-list,
+        .clamp-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            /* visible lines */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fade effect (theme-aware) */
+        .clamp-list::after,
+        .clamp-text::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 24px;
+            width: 100%;
+            background: linear-gradient(to bottom,
+                    rgba(0, 0, 0, 0),
+                    var(--clamp-fade-bg));
         }
     </style>
 

@@ -3,8 +3,8 @@
 @push('style')
     <style>
         /* ============================================================
-                                       RISK SCORE GAUGE
-                                       ============================================================ */
+                                           RISK SCORE GAUGE
+                                           ============================================================ */
         .score-gauge {
             font-size: 3.2rem;
             font-weight: 800;
@@ -24,8 +24,8 @@
         }
 
         /* ============================================================
-                                       MEMBERSHIP BAR
-                                       ============================================================ */
+                                           MEMBERSHIP BAR
+                                           ============================================================ */
         .mf-bar-wrap {
             height: 16px;
             border-radius: 6px;
@@ -46,8 +46,8 @@
         }
 
         /* ============================================================
-                                       RECOMMENDATION TEXTAREAS
-                                       ============================================================ */
+                                           RECOMMENDATION TEXTAREAS
+                                           ============================================================ */
         .rec-area {
             min-height: 130px;
             font-size: .875rem;
@@ -57,8 +57,8 @@
         }
 
         /* ============================================================
-                                       STATUS BANNER
-                                       ============================================================ */
+                                           STATUS BANNER
+                                           ============================================================ */
         .status-banner {
             border-radius: 10px;
             padding: .75rem 1.25rem;
@@ -325,7 +325,7 @@
             {{-- =====================================================
              FORM VALIDASI
              ===================================================== --}}
-            <form method="POST" action="{{ route('rekomendasi.update', $rec->id) }}" id="validateForm">
+            <form method="POST" action="{{ route('rekomendasi.update', encrypt($rec->id)) }}" id="validateForm">
                 @csrf
                 @method('PUT')
                 {{-- Tahun diteruskan sebagai hidden input agar controller bisa redirect kembali --}}

@@ -8,13 +8,13 @@
                     <i class="ti tabler-edit me-1"></i>
                     Edit Recommendation Rule
                 </h5>
-                <a href="{{ route('recommendation-rules.show', $rule->id) }}" class="btn btn-sm btn-secondary">
+                <a href="{{ route('recommendation-rules.show', encrypt($rule->id)) }}" class="btn btn-sm btn-secondary">
                     View
                 </a>
             </div>
 
             <div class="card-body">
-                <form action="{{ route('recommendation-rules.update', $rule->id) }}" method="POST">
+                <form action="{{ route('recommendation-rules.update', encrypt($rule->id)) }}" method="POST">
                     @csrf
                     @method('PUT')
 
