@@ -45,7 +45,7 @@
             <div class="dataTables_wrapper dt-light ">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
                     {{-- SHOW ENTRIES --}}
-                    <div class="dataTables_length">
+                    <div class="">
                         <form method="GET" class="d-flex align-items-center gap-2 mb-0">
                             {{-- keep existing params --}}
                             <input type="hidden" name="search" value="{{ request('search') }}">
@@ -66,7 +66,7 @@
                     </div>
 
                     {{-- SEARCH --}}
-                    <div class="dataTables_filter">
+                    <div class="">
                         <form method="GET" class="d-flex align-items-center gap-2 mb-0">
                             <input type="hidden" name="per_page" value="{{ request('per_page', 10) }}">
 

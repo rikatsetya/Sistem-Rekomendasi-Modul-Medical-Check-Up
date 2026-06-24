@@ -46,18 +46,36 @@
                 </table>
             </div>
         </div>
+
+        @php
+            // Helper function to clean and parse data for display
+            $parseData = function ($data) {
+                if (is_array($data)) {
+                    return $data;
+                }
+                $decoded = json_decode($data, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+                return array_filter(array_map('trim', explode('•', $data)));
+            };
+
+            $notes = $parseData($notesNow ?? '');
+            $makanan = $parseData($makananNow ?? '');
+            $olahraga = $parseData($olahragaNow ?? '');
+        @endphp
         <div class="col-xl-12 col-sm-12">
             <div class="card">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <h4 class="text-title mb-0">
-                        Rekomendasi Pola Makan & Olahraga
-                    </h4>
-
-                    <form method="GET" class="m-0">
+                    <div>
+                        <h4 class="fw-bold mb-1">Rekomendasi Pola Makan & Olahraga</h4>
+                        <p class="text-muted">Laporan personal untuk gaya hidup sehat Anda.</p>
+                    </div>
+                    <form method="GET" class="d-inline-block">
                         <select name="tahun" class="form-select select2" onchange="this.form.submit()">
                             @foreach ($availableYears as $year)
                                 <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>
-                                    {{ $year }}
+                                    Tahun {{ $year }}
                                 </option>
                             @endforeach
                         </select>
@@ -65,134 +83,80 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-12 col-sm-12">
+        {{-- Notes Section (Highlight) --}}
+        <div class="col-12 mb-4">
             <div class="card">
-                <div class="card-header">
-                    <h4 class="text-title">Catatan Sistem</h4>
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+
+                        <div>
+                            <h6 class="mb-1 text-primary mb-2"><i class="ti tabler-info-circle ti-lg me-3"></i>Catatan Sistem
+                            </h6>
+                            @if (!empty($notes))
+                                <ul class="mb-0 ps-3">
+                                    @foreach ($notes as $item)
+                                        <li class="mb-2">{{ $item }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="mb-0 text-primary opacity-75">Tidak ada catatan khusus untuk periode ini.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Recommendations (Two Columns) --}}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="ti tabler-bowl-spoon text-primary me-2"></i>
+                    <h5 class="card-title mb-0">Rekomendasi Pola Makan</h5>
                 </div>
                 <div class="card-body">
-                    @if ($notesNow)
-                        @php
-                            if (is_array($notesNow)) {
-                                $items = $notesNow;
-                            } elseif (is_string($notesNow)) {
-                                // Coba decode JSON dulu
-                                $decoded = json_decode($notesNow, true);
-
-                                if (is_array($decoded)) {
-                                    $items = $decoded;
-                                } else {
-                                    // Pecah berdasarkan bullet "•"
-                                    $items = array_filter(array_map('trim', explode('•', $notesNow)));
-                                }
-                            } else {
-                                $items = [];
-                            }
-                        @endphp
-
-                        @if (!empty($items))
-                            <ul class="mb-0 ps-3">
-                                @foreach ($items as $item)
-                                    <li>{{ $item }}</li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="mb-0 text-body">{{ $notesNow }}</p>
-                        @endif
+                    @if (!empty($makanan))
+                        <ul class="list-unstyled mb-0">
+                            @foreach ($makanan as $item)
+                                <li class="d-flex mb-3">
+                                    <i class="ti tabler-circle-check text-success me-2 mt-1 flex-shrink-0"></i>
+                                    <span>{{ $item }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
                     @else
-                        <p class="mb-0 text-muted fst-italic">
-                            Konten rekomendasi pola makan akan ditampilkan di sini.
-                        </p>
+                        <div class="text-center py-4">
+                            <i class="ti tabler-salad text-muted mb-2 flex-shrink-0"></i>
+                            <p class="text-muted">Data pola makan belum tersedia.</p>
+                        </div>
                     @endif
                 </div>
             </div>
         </div>
 
-        <div class="col-xl-6 col-sm-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="text-title">Rekomendasi Pola Makan</h4>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="ti tabler-run text-primary me-2"></i>
+                    <h5 class="card-title mb-0">Rekomendasi Olahraga</h5>
                 </div>
                 <div class="card-body">
-                    @if ($makananNow)
-                        @php
-                            if (is_array($makananNow)) {
-                                $items = $makananNow;
-                            } elseif (is_string($makananNow)) {
-                                // Coba decode JSON dulu
-                                $decoded = json_decode($makananNow, true);
-
-                                if (is_array($decoded)) {
-                                    $items = $decoded;
-                                } else {
-                                    // Pecah berdasarkan bullet "•"
-                                    $items = array_filter(array_map('trim', explode('•', $makananNow)));
-                                }
-                            } else {
-                                $items = [];
-                            }
-                        @endphp
-
-                        @if (!empty($items))
-                            <ul class="mb-0 ps-3">
-                                @foreach ($items as $item)
-                                    <li>{{ $item }}</li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="mb-0 text-body">{{ $makananNow }}</p>
-                        @endif
+                    @if (!empty($olahraga))
+                        <ul class="list-unstyled mb-0">
+                            @foreach ($olahraga as $item)
+                                <li class="d-flex mb-3">
+                                    <i class="ti tabler-circle-check text-primary me-2 mt-1 flex-shrink-0"></i>
+                                    <span>{{ $item }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
                     @else
-                        <p class="mb-0 text-muted fst-italic">
-                            Konten rekomendasi pola makan akan ditampilkan di sini.
-                        </p>
+                        <div class="text-center py-4">
+                            <i class="ti tabler-barbell text-muted mb-2 flex-shrink-0"></i>
+                            <p class="text-muted">Data olahraga belum tersedia.</p>
+                        </div>
                     @endif
-
                 </div>
-            </div>
-        </div>
-        <div class="col-xl-6 col-sm-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="text-title">Rekomendasi Olahraga</h4>
-                </div>
-                <div class="card-body">
-                    @if ($olahragaNow)
-                        @php
-                            if (is_array($olahragaNow)) {
-                                $items = $olahragaNow;
-                            } elseif (is_string($olahragaNow)) {
-                                // Coba decode JSON dulu
-                                $decoded = json_decode($olahragaNow, true);
-
-                                if (is_array($decoded)) {
-                                    $items = $decoded;
-                                } else {
-                                    // Pecah berdasarkan bullet "•"
-                                    $items = array_filter(array_map('trim', explode('•', $olahragaNow)));
-                                }
-                            } else {
-                                $items = [];
-                            }
-                        @endphp
-
-                        @if (!empty($items))
-                            <ul class="mb-0 ps-3">
-                                @foreach ($items as $item)
-                                    <li>{{ $item }}</li>
-                                @endforeach
-                            </ul>
-                        @else
-                            <p class="mb-0 text-body">{{ $olahragaNow }}</p>
-                        @endif
-                    @else
-                        <p class="mb-0 text-muted fst-italic">
-                            Konten rekomendasi olahraga akan ditampilkan di sini.
-                        </p>
-                    @endif
-
-                </div>
-
             </div>
         </div>
     </div>
