@@ -350,9 +350,9 @@
                                 <td class="text-center">
                                     @if (!$rec)
                                         <span class="badge bg-label-secondary">Raw</span>
-                                    @elseif($rec->status === 'draft')
+                                    @elseif($rec->status == 'draft')
                                         <span class="badge bg-label-warning">Generated</span>
-                                    @elseif($rec->status === 'published')
+                                    @elseif($rec->status == 'published')
                                         <span class="badge bg-label-success">Published</span>
                                     @else
                                         <span class="badge bg-label-secondary">Unknown</span>

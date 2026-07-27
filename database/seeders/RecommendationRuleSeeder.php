@@ -5,415 +5,454 @@ namespace Database\Seeders;
 use App\Models\RecommendationRule;
 use Illuminate\Database\Seeder;
 
+/**
+ * RecommendationRuleSeeder
+ *
+ * Meng-seed tabel recommendation_rules dengan aturan rekomendasi klinis
+ * untuk sistem Fuzzy Mamdani Hierarkis 7 Kelompok.
+ *
+ * Setiap kelompok memiliki 4 severity level yang dipetakan dari skor (0–100):
+ *   ringan : 0  – 29
+ *   sedang : 30 – 49
+ *   tinggi : 50 – 69
+ *   kritis : 70 – 100
+ *
+ * 7 Group Code:
+ *   1. fungsi_hati    — GOT, GPT
+ *   2. diabetes       — Glukosa Puasa, Glukosa 2j PP, HbA1c
+ *   3. profil_lipid   — Chol.Total, LDL, HDL, Trigliserida, Apo-B
+ *   4. fungsi_ginjal  — Urea N, Ureum, Kreatinin, eLFG
+ *   5. asam_urat      — Asam Urat
+ *   6. kardiovaskular — Nadi, Pernafasan, Sistolik, Diastolik
+ *   7. antropometri   — Tinggi Badan, Berat Badan, IMT, Lingkar Perut
+ */
 class RecommendationRuleSeeder extends Seeder
 {
     public function run(): void
     {
+        // Hapus data lama sebelum seeding ulang
+        RecommendationRule::truncate();
+
         $now = now();
 
+        // Rentang skor per severity level
         $ranges = [
-            'ringan' => [0, 29],
+            'ringan' => [0,  29],
             'sedang' => [30, 49],
             'tinggi' => [50, 69],
             'kritis' => [70, 100],
         ];
 
+        // =====================================================================
+        // DEFINISI REKOMENDASI — 7 KELOMPOK × 4 SEVERITY × 3 KATEGORI
+        // =====================================================================
         $definitions = [
 
-            'global' => [
+            // =================================================================
+            // KELOMPOK 1: FUNGSI HATI (GOT / GPT)
+            // =================================================================
+            'fungsi_hati' => [
+
                 'ringan' => [
-                    'diet' => [
-                        'Edukasi gizi seimbang dan pola makan sehat.',
+                    'pola makan' => [
+                        'Kurangi gorengan, makanan berlemak tinggi, dan alkohol; perbanyak sayur, buah, serta protein tanpa lemak.',
                     ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan seperti jalan santai minimal 30 menit/hari.',
+                    'olahraga' => [
+                        'Aktivitas fisik ringan rutin seperti jalan kaki ±30 menit per hari; hindari olahraga berlebihan.',
                     ],
-                    'note' => [
-                        'Pantau pola makan dan aktivitas fisik secara berkala.',
+                    'catatan' => [
+                        'Pantau GOT dan GPT setiap ±6 bulan dan hindari obat atau suplemen tanpa anjuran dokter.',
                     ],
                 ],
+
                 'sedang' => [
-                    'diet' => [
-                        'Defisit kalori 400–500 kkal/hari dari kebutuhan basal.',
-                        'Komposisi makronutrien: karbohidrat kompleks 50–60%, protein 15–20%, lemak sehat 25–30%.',
-                        'Asupan serat minimal 25 gram/hari dari sayur dan buah utuh.',
+                    'pola makan' => [
+                        'Hentikan alkohol dan batasi lemak jenuh, gula tambahan, serta makanan olahan; tingkatkan sayur dan biji-bijian utuh.',
                     ],
-                    'exercise' => [
-                        'Aerobik intensitas sedang ±150 menit/minggu (jalan cepat, bersepeda ringan).',
-                        'Latihan kekuatan 2x/minggu (squat, push-up, bodyweight).',
+                    'olahraga' => [
+                        'Aerobik intensitas ringan–sedang 3–4 kali per minggu; hindari latihan berat hingga enzim hati membaik.',
                     ],
-                    'note' => [
-                        'Pertimbangkan evaluasi progres setelah 1–3 bulan.',
+                    'catatan' => [
+                        'Evaluasi GOT/GPT setiap 3 bulan dan waspadai gejala klinis seperti ikterus atau nyeri perut kanan atas.',
                     ],
                 ],
+
                 'tinggi' => [
-                    'diet' => [
-                        'Pengaturan pola makan ketat dan terstruktur dengan pengawasan tenaga kesehatan.',
+                    'pola makan' => [
+                        'Ikuti diet rendah lemak dan rendah garam khusus fungsi hati sesuai anjuran medis.',
+                        'Hindari total alkohol, obat hepatotoksik, dan makanan cepat saji.',
                     ],
-                    'exercise' => [
-                        'Aktivitas fisik terkontrol dan disesuaikan kondisi medis.',
+                    'olahraga' => [
+                        'Batasi aktivitas fisik berat; pilih latihan ringan sesuai toleransi dan persetujuan dokter.',
                     ],
-                    'note' => [
-                        'Disarankan pemantauan tenaga kesehatan dan evaluasi lanjutan.',
+                    'catatan' => [
+                        'Disarankan konsultasi spesialis dan pemeriksaan lanjutan seperti USG abdomen dan profil hepatitis.',
                     ],
                 ],
+
                 'kritis' => [
-                    'diet' => [
-                        'Pengaturan pola makan sangat ketat dan terstruktur dengan pengawasan tenaga kesehatan.',
+                    'pola makan' => [
+                        'Diet terapeutik ketat di bawah supervisi dokter dan dietisien; pembatasan protein mungkin diperlukan.',
+                        'Hindari seluruh makanan hepatotoksik dan suplemen tanpa rekomendasi medis.',
                     ],
-                    'exercise' => [
-                        'Aktivitas fisik sangat terkontrol dan hanya sesuai anjuran medis.',
+                    'olahraga' => [
+                        'Istirahat atau aktivitas sangat ringan hanya sesuai instruksi dokter.',
                     ],
-                    'note' => [
-                        'Risiko kesehatan tinggi. Disarankan evaluasi dan penanganan medis lanjutan.',
+                    'catatan' => [
+                        'Kondisi darurat medis dengan risiko gagal hati akut; rawat inap dan monitoring ketat diperlukan.',
+                        'Evaluasi segera oleh dokter spesialis hepatologi atau penyakit dalam.',
                     ],
                 ],
+
             ],
 
-            'obesitas_metabolik' => [
-                'ringan' => [
-                    'diet' => [
-                        'Kurangi porsi makan berlebih dan batasi minuman manis.',
-                    ],
-                    'exercise' => [
-                        'Jaga aktivitas harian dan lakukan jalan santai secara rutin.',
-                    ],
-                    'note' => [
-                        'Pantau IMT dan lingkar perut secara berkala.',
-                    ],
-                ],
-                'sedang' => [
-                    'diet' => [
-                        'Fokus pada defisit kalori bertahap dan kontrol porsi makan.',
-                        'Perbanyak konsumsi sayur, buah, dan sumber protein tanpa lemak.',
-                    ],
-                    'exercise' => [
-                        'Aerobik rutin dan peningkatan aktivitas harian (NEAT).',
-                    ],
-                    'note' => [
-                        'Pertimbangkan konsultasi ahli gizi untuk perencanaan makan.',
-                    ],
-                ],
-                'tinggi' => [
-                    'diet' => [
-                        'Fokus pada defisit kalori bertahap dan kontrol porsi makan.',
-                        'Batasi makanan tinggi kalori, lemak jenuh, dan gula sederhana.',
-                    ],
-                    'exercise' => [
-                        'Aerobik rutin dan peningkatan aktivitas harian (NEAT).',
-                    ],
-                    'note' => [
-                        'Evaluasi faktor risiko metabolik dan komorbid yang menyertai.',
-                    ],
-                ],
-                'kritis' => [
-                    'diet' => [
-                        'Pengaturan diet ketat dengan pemantauan tenaga kesehatan.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan–sedang sesuai kondisi medis.',
-                    ],
-                    'note' => [
-                        'Disarankan evaluasi medis lanjutan dan monitoring ketat.',
-                    ],
-                ],
-            ],
-
+            // =================================================================
+            // KELOMPOK 2: DIABETES / GULA DARAH
+            // =================================================================
             'diabetes' => [
+
                 'ringan' => [
-                    'diet' => [
-                        'Batasi gula sederhana dan pilih karbohidrat kompleks.',
+                    'pola makan' => [
+                        'Batasi gula sederhana dan pilih karbohidrat kompleks berserat tinggi dengan indeks glikemik rendah.',
                     ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan seperti jalan kaki teratur.',
+                    'olahraga' => [
+                        'Aktivitas aerobik ringan–sedang seperti jalan kaki 30 menit setelah makan atau bersepeda rutin.',
                     ],
-                    'note' => [
-                        'Monitoring glukosa darah secara berkala dianjurkan.',
+                    'catatan' => [
+                        'Pantau gula darah puasa secara berkala dan jaga berat badan ideal untuk mencegah progresi.',
                     ],
                 ],
+
                 'sedang' => [
-                    'diet' => [
-                        'Batasi gula sederhana dan indeks glikemik tinggi.',
-                        'Distribusi karbohidrat merata sepanjang hari.',
+                    'pola makan' => [
+                        'Atur distribusi karbohidrat harian secara merata, batasi gula tersembunyi, dan pilih sumber kompleks.',
                     ],
-                    'exercise' => [
-                        'Aktivitas aerobik teratur untuk meningkatkan sensitivitas insulin.',
+                    'olahraga' => [
+                        'Aerobik intensitas sedang ±150 menit per minggu, ditambah latihan resistensi 2–3 kali per minggu.',
                     ],
-                    'note' => [
-                        'Pertimbangkan pemeriksaan HbA1c dan evaluasi pola makan.',
+                    'catatan' => [
+                        'Evaluasi HbA1c setiap 3–6 bulan dan diskusikan terapi lanjutan bila kontrol glikemik belum tercapai.',
                     ],
                 ],
+
                 'tinggi' => [
-                    'diet' => [
-                        'Batasi gula sederhana dan indeks glikemik tinggi.',
-                        'Distribusi karbohidrat merata sepanjang hari.',
+                    'pola makan' => [
+                        'Terapkan diet diabetes terstruktur dengan pembatasan karbohidrat ketat di bawah pengawasan ahli gizi.',
+                        'Hindari seluruh makanan dan minuman manis secara konsisten.',
                     ],
-                    'exercise' => [
-                        'Aktivitas aerobik teratur untuk meningkatkan sensitivitas insulin.',
+                    'olahraga' => [
+                        'Latihan fisik terstruktur dengan pemantauan gula darah sebelum dan sesudah olahraga.',
                     ],
-                    'note' => [
-                        'Kontrol glukosa lebih sering dan evaluasi terapi lanjutan.',
+                    'catatan' => [
+                        'Konsultasi dokter untuk evaluasi terapi antidiabetik dan skrining faktor risiko komplikasi.',
                     ],
                 ],
+
                 'kritis' => [
-                    'diet' => [
-                        'Pengaturan asupan karbohidrat secara ketat dan terstruktur.',
+                    'pola makan' => [
+                        'Diet ketat harus disupervisi medis; waspadai dan cegah hipoglikemia terutama pada terapi insulin.',
+                        'Sediakan selalu sumber gula cepat untuk kondisi darurat.',
                     ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan sesuai anjuran medis.',
+                    'olahraga' => [
+                        'Aktivitas fisik hanya boleh dilakukan setelah kadar gula stabil dan atas izin dokter.',
                     ],
-                    'note' => [
-                        'Rujukan dan pengawasan medis lanjutan diperlukan.',
+                    'catatan' => [
+                        'Kondisi darurat dengan risiko komplikasi akut; diperlukan pemantauan gula darah intensif dan evaluasi komplikasi menyeluruh.',
+                        'Penanganan medis segera sangat dianjurkan.',
                     ],
                 ],
+
             ],
 
+            // =================================================================
+            // KELOMPOK 3: PROFIL LIPID
+            // =================================================================
+            'profil_lipid' => [
+
+                'ringan' => [
+                    'pola makan' => [
+                        'Batasi lemak jenuh dan lemak trans, serta perbanyak lemak tak jenuh dan serat larut untuk menurunkan LDL.',
+                    ],
+                    'olahraga' => [
+                        'Aerobik ringan–sedang seperti jalan cepat atau bersepeda minimal 30 menit, 5 hari per minggu.',
+                    ],
+                    'catatan' => [
+                        'Pantau profil lipid lengkap secara berkala dan hindari merokok karena menurunkan HDL.',
+                    ],
+                ],
+
+                'sedang' => [
+                    'pola makan' => [
+                        'Terapkan pola diet Mediterania dengan pembatasan lemak trans, daging merah, karbohidrat rafinasi, dan alkohol.',
+                    ],
+                    'olahraga' => [
+                        'Aerobik intensitas sedang 150–300 menit per minggu disertai latihan kekuatan 2 kali per minggu.',
+                    ],
+                    'catatan' => [
+                        'Evaluasi profil lipid setiap 3 bulan dan pertimbangkan terapi obat bila target tidak tercapai.',
+                    ],
+                ],
+
+                'tinggi' => [
+                    'pola makan' => [
+                        'Diet rendah lemak jenuh dan kolesterol harus dijalankan secara ketat di bawah pengawasan ahli gizi.',
+                        'Hindari total lemak trans dan batasi sangat ketat asupan lemak jenuh.',
+                    ],
+                    'olahraga' => [
+                        'Program olahraga terstruktur dan terpantau secara medis untuk menurunkan risiko kardiovaskular.',
+                    ],
+                    'catatan' => [
+                        'Diperlukan evaluasi risiko kardiovaskular menyeluruh dan kemungkinan terapi farmakologis.',
+                    ],
+                ],
+
+                'kritis' => [
+                    'pola makan' => [
+                        'Diet terapeutik ketat wajib disusun dan diawasi oleh dokter serta dietisien klinis.',
+                        'Respons diet harus dipantau ketat melalui pemeriksaan profil lipid berkala.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas fisik hanya boleh dilakukan atas rekomendasi dan pemantauan dokter.',
+                    ],
+                    'catatan' => [
+                        'Risiko kejadian kardiovaskular sangat tinggi sehingga diperlukan penanganan medis segera dan intensif.',
+                    ],
+                ],
+
+            ],
+
+            // =================================================================
+            // KELOMPOK 4: FUNGSI GINJAL
+            // =================================================================
+            'fungsi_ginjal' => [
+
+                'ringan' => [
+                    'pola makan' => [
+                        'Cukupi asupan cairan dan batasi garam untuk menjaga fungsi filtrasi dan tekanan darah.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas fisik ringan–sedang secara teratur dengan menjaga hidrasi yang cukup.',
+                    ],
+                    'catatan' => [
+                        'Pantau ureum, kreatinin, dan eLFG secara berkala serta hindari penggunaan NSAID jangka panjang.',
+                    ],
+                ],
+
+                'sedang' => [
+                    'pola makan' => [
+                        'Kontrol asupan protein serta batasi kalium dan fosfor sesuai kondisi fungsi ginjal.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas fisik berdampak rendah seperti jalan santai atau yoga, hindari dehidrasi.',
+                    ],
+                    'catatan' => [
+                        'Evaluasi fungsi ginjal dan tekanan darah setiap 3 bulan untuk mencegah progresivitas CKD.',
+                    ],
+                ],
+
+                'tinggi' => [
+                    'pola makan' => [
+                        'Diet ginjal terstruktur dengan pembatasan protein, natrium, kalium, dan fosfor secara ketat.',
+                        'Pemantauan asupan cairan diperlukan bila muncul edema atau penurunan urin.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas sangat ringan dan hanya sesuai rekomendasi dokter.',
+                    ],
+                    'catatan' => [
+                        'Diperlukan konsultasi spesialis nefrologi dan pemeriksaan lanjutan untuk penanganan komprehensif.',
+                    ],
+                ],
+
+                'kritis' => [
+                    'pola makan' => [
+                        'Diet terapeutik ginjal ketat wajib berada di bawah supervisi dokter dan dietisien klinis.',
+                        'Pembatasan cairan harus mengikuti instruksi medis secara ketat.',
+                    ],
+                    'olahraga' => [
+                        'Istirahat dominan; aktivitas fisik hanya jika diizinkan dokter.',
+                    ],
+                    'catatan' => [
+                        'Kondisi kritis — kemungkinan memerlukan terapi pengganti ginjal dan monitoring intensif.',
+                    ],
+                ],
+
+            ],
+
+            // =================================================================
+            // KELOMPOK 5: ASAM URAT
+            // =================================================================
+            'asam_urat' => [
+
+                'ringan' => [
+                    'pola makan' => [
+                        'Batasi makanan tinggi purin dan perbanyak konsumsi air putih untuk membantu ekskresi asam urat.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas fisik ringan dan rutin dengan menjaga berat badan ideal.',
+                    ],
+                    'catatan' => [
+                        'Pantau kadar asam urat secara berkala dan perhatikan munculnya nyeri sendi.',
+                    ],
+                ],
+
+                'sedang' => [
+                    'pola makan' => [
+                        'Kurangi konsumsi jeroan, daging merah, seafood tinggi purin, dan alkohol; pilih sumber protein nabati.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas aerobik ringan–sedang dan peregangan untuk menjaga mobilitas sendi.',
+                    ],
+                    'catatan' => [
+                        'Evaluasi kadar asam urat setiap 3 bulan dan waspadai tanda serangan gout akut.',
+                    ],
+                ],
+
+                'tinggi' => [
+                    'pola makan' => [
+                        'Terapkan diet rendah purin ketat dan hindari alkohol secara total.',
+                        'Konsumsi produk susu rendah lemak dan perbanyak sayur-buah.',
+                    ],
+                    'olahraga' => [
+                        'Aktivitas fisik berdampak rendah; istirahatkan sendi saat terjadi serangan gout.',
+                    ],
+                    'catatan' => [
+                        'Diperlukan evaluasi dokter untuk terapi farmakologis dan pemeriksaan komplikasi.',
+                    ],
+                ],
+
+                'kritis' => [
+                    'pola makan' => [
+                        'Diet rendah purin eksklusif harus berada di bawah supervisi dokter dan dietisien klinis.',
+                        'Hindari seluruh sumber purin tinggi selama fase kritis.',
+                    ],
+                    'olahraga' => [
+                        'Istirahat total pada sendi yang terkena; aktivitas hanya jika diizinkan dokter.',
+                    ],
+                    'catatan' => [
+                        'Kondisi kritis — risiko komplikasi gout kronis tinggi dan memerlukan penanganan spesialis.',
+                    ],
+                ],
+
+            ],
+
+            // =================================================================
+            // KELOMPOK 6: KARDIOVASKULAR & TANDA VITAL
+            // =================================================================
             'kardiovaskular' => [
+
                 'ringan' => [
-                    'diet' => [
-                        'Batasi garam berlebih dan lemak jenuh.',
+                    'pola makan' => [
+                        'Batasi asupan natrium dan terapkan pola makan DASH untuk membantu mengontrol tekanan darah.',
                     ],
-                    'exercise' => [
-                        'Jalan kaki atau aktivitas aerobik ringan secara rutin.',
+                    'olahraga' => [
+                        'Lakukan aerobik ringan secara rutin seperti jalan kaki atau bersepeda 30 menit per hari.',
                     ],
-                    'note' => [
-                        'Pantau tekanan darah dan profil lipid secara berkala.',
+                    'catatan' => [
+                        'Pantau tekanan darah dan denyut nadi secara berkala serta hindari merokok dan kafein berlebih.',
                     ],
                 ],
+
                 'sedang' => [
-                    'diet' => [
-                        'Batasi lemak jenuh dan kolesterol.',
-                        'Konsumsi lemak sehat seperti ikan, kacang-kacangan, dan minyak zaitun.',
+                    'pola makan' => [
+                        'Terapkan diet DASH rendah natrium dan lemak jenuh secara konsisten.',
                     ],
-                    'exercise' => [
-                        'Aerobik intensitas sedang secara teratur.',
+                    'olahraga' => [
+                        'Aerobik intensitas sedang ±150 menit per minggu dengan pemantauan tekanan darah.',
                     ],
-                    'note' => [
-                        'Evaluasi faktor risiko kardiometabolik secara berkala.',
+                    'catatan' => [
+                        'Target tekanan darah < 130/80 mmHg dan pertimbangkan evaluasi medis bila tidak tercapai.',
                     ],
                 ],
+
                 'tinggi' => [
-                    'diet' => [
-                        'Batasi lemak jenuh dan kolesterol.',
-                        'Konsumsi lemak sehat (ikan, kacang-kacangan, minyak zaitun).',
+                    'pola makan' => [
+                        'Diet kardioprotektif ketat rendah natrium dan lemak jenuh di bawah pengawasan ahli gizi.',
+                        'Konsumsi ikan berlemak sumber omega-3 secara rutin.',
                     ],
-                    'exercise' => [
-                        'Olahraga aerobik intensitas sedang dengan monitoring denyut nadi.',
+                    'olahraga' => [
+                        'Olahraga aerobik bertahap dengan monitoring denyut nadi dan tekanan darah.',
                     ],
-                    'note' => [
-                        'Disarankan evaluasi tekanan darah dan fungsi kardiovaskular lebih lanjut.',
+                    'catatan' => [
+                        'Disarankan evaluasi dokter spesialis jantung dan kemungkinan terapi antihipertensi.',
                     ],
                 ],
+
                 'kritis' => [
-                    'diet' => [
-                        'Diet rendah garam dan rendah lemak jenuh di bawah pengawasan medis.',
+                    'pola makan' => [
+                        'Diet kardiovaskular terapeutik eksklusif dengan pembatasan natrium sangat ketat.',
+                        'Seluruh pola makan harus mengikuti panduan tim medis.',
                     ],
-                    'exercise' => [
-                        'Aktivitas fisik sangat terkontrol dan disesuaikan kondisi klinis.',
+                    'olahraga' => [
+                        'Aktivitas fisik hanya boleh dilakukan setelah mendapat izin dan pengawasan dokter.',
                     ],
-                    'note' => [
-                        'Perlu evaluasi dokter segera dan penanganan lanjutan.',
+                    'catatan' => [
+                        'Kondisi kritis dengan risiko tinggi — diperlukan evaluasi dan monitoring intensif oleh kardiolog.',
                     ],
                 ],
+
             ],
 
-            'ginjal' => [
-                'ringan' => [
-                    'diet' => [
-                        'Cukupi cairan dan hindari garam berlebih.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas ringan dan teratur.',
-                    ],
-                    'note' => [
-                        'Pantau fungsi ginjal secara berkala.',
-                    ],
-                ],
-                'sedang' => [
-                    'diet' => [
-                        'Kontrol asupan protein dan natrium.',
-                        'Hindari makanan olahan dan tinggi garam.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan–sedang, hindari dehidrasi.',
-                    ],
-                    'note' => [
-                        'Pertimbangkan pemeriksaan ureum, kreatinin, dan eGFR.',
-                    ],
-                ],
-                'tinggi' => [
-                    'diet' => [
-                        'Perhatikan asupan protein agar tidak berlebihan.',
-                        'Hindari konsumsi garam berlebih dan makanan olahan.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan–sedang, hindari dehidrasi.',
-                    ],
-                    'note' => [
-                        'Disarankan konsultasi lanjutan bila fungsi ginjal menurun.',
-                    ],
-                ],
-                'kritis' => [
-                    'diet' => [
-                        'Pengaturan diet ketat sesuai anjuran medis.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik sangat ringan dan terkontrol.',
-                    ],
-                    'note' => [
-                        'Perlu penanganan lanjutan oleh tenaga kesehatan.',
-                    ],
-                ],
-            ],
+            // =================================================================
+            // KELOMPOK 7: ANTROPOMETRI & OBESITAS
+            // =================================================================
+            'antropometri' => [
 
-            'hati' => [
                 'ringan' => [
-                    'diet' => [
-                        'Kurangi gorengan, makanan tinggi lemak, dan alkohol.',
+                    'pola makan' => [
+                        'Terapkan pola makan gizi seimbang dengan pengendalian porsi untuk menjaga berat badan dan lingkar perut ideal.',
                     ],
-                    'exercise' => [
-                        'Aktivitas ringan secara rutin.',
+                    'olahraga' => [
+                        'Tetap aktif secara fisik minimal 30 menit per hari melalui aktivitas ringan seperti jalan kaki.',
                     ],
-                    'note' => [
-                        'Pantau fungsi hati secara berkala.',
-                    ],
-                ],
-                'sedang' => [
-                    'diet' => [
-                        'Perbanyak sayur, buah, dan makanan tinggi antioksidan.',
-                        'Kurangi konsumsi makanan tinggi lemak jenuh dan gula berlebih.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas aerobik ringan–sedang secara teratur.',
-                    ],
-                    'note' => [
-                        'Evaluasi pola konsumsi dan fungsi hati secara berkala.',
+                    'catatan' => [
+                        'Pantau IMT dan lingkar perut secara berkala untuk mencegah kenaikan berat badan.',
                     ],
                 ],
-                'tinggi' => [
-                    'diet' => [
-                        'Hindari lemak jenuh, gorengan, dan alkohol.',
-                        'Perbanyak sayur, buah, dan makanan tinggi antioksidan.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik terkontrol sesuai kondisi tubuh.',
-                    ],
-                    'note' => [
-                        'Disarankan konsultasi lanjutan bila keluhan menetap.',
-                    ],
-                ],
-                'kritis' => [
-                    'diet' => [
-                        'Diet ketat dan terstruktur dengan pengawasan tenaga kesehatan.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas ringan sesuai toleransi tubuh.',
-                    ],
-                    'note' => [
-                        'Perlu evaluasi dan penanganan spesialis.',
-                    ],
-                ],
-            ],
 
-            'hiperurisemia' => [
-                'ringan' => [
-                    'diet' => [
-                        'Batasi makanan tinggi purin dan cukupkan air putih.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas ringan dan rutin.',
-                    ],
-                    'note' => [
-                        'Pantau kadar asam urat secara berkala.',
-                    ],
-                ],
                 'sedang' => [
-                    'diet' => [
-                        'Kurangi jeroan, seafood tertentu, dan minuman tinggi fruktosa.',
-                        'Perbanyak konsumsi air putih.',
+                    'pola makan' => [
+                        'Lakukan defisit kalori bertahap dengan memilih makanan tinggi serat dan rendah energi.',
                     ],
-                    'exercise' => [
-                        'Aktivitas aerobik ringan–sedang.',
+                    'olahraga' => [
+                        'Aerobik intensitas sedang disertai latihan kekuatan ringan secara rutin.',
                     ],
-                    'note' => [
-                        'Pertimbangkan evaluasi bila nyeri sendi muncul berulang.',
-                    ],
-                ],
-                'tinggi' => [
-                    'diet' => [
-                        'Batasi makanan tinggi purin (jeroan, seafood tertentu).',
-                        'Perbanyak konsumsi air putih.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik terkontrol dan hindari dehidrasi.',
-                    ],
-                    'note' => [
-                        'Konsultasi medis disarankan bila keluhan nyeri sendi berulang.',
+                    'catatan' => [
+                        'Evaluasi progres penurunan berat badan secara berkala dan sesuaikan target secara realistis.',
                     ],
                 ],
-                'kritis' => [
-                    'diet' => [
-                        'Diet rendah purin yang ketat dan terstruktur.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik ringan sesuai kondisi.',
-                    ],
-                    'note' => [
-                        'Perlu pengawasan dan tindak lanjut medis.',
-                    ],
-                ],
-            ],
 
-            'hemodinamik' => [
-                'ringan' => [
-                    'diet' => [
-                        'Batasi garam berlebih dan pertahankan hidrasi.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas ringan dengan pemantauan keluhan.',
-                    ],
-                    'note' => [
-                        'Pantau tekanan darah dan denyut nadi secara berkala.',
-                    ],
-                ],
-                'sedang' => [
-                    'diet' => [
-                        'Konsumsi makanan seimbang dan cukup cairan.',
-                    ],
-                    'exercise' => [
-                        'Aktivitas fisik stabil dan terkontrol.',
-                    ],
-                    'note' => [
-                        'Hindari aktivitas mendadak yang memicu gejala.',
-                    ],
-                ],
                 'tinggi' => [
-                    'diet' => [
-                        'Batasi garam, stimulan, dan pola makan tidak teratur.',
+                    'pola makan' => [
+                        'Program penurunan berat badan terstruktur dengan defisit kalori yang diawasi ahli gizi.',
+                        'Batasi ketat makanan ultra-proses dan minuman berkalori.',
                     ],
-                    'exercise' => [
-                        'Hindari olahraga intensitas tinggi tanpa pengawasan.',
-                        'Pilih aktivitas fisik stabil dan terkontrol.',
+                    'olahraga' => [
+                        'Program olahraga terstruktur kombinasi kardio dan kekuatan secara bertahap.',
                     ],
-                    'note' => [
-                        'Monitoring parameter hemodinamik diperlukan.',
+                    'catatan' => [
+                        'Evaluasi faktor risiko metabolik dan pertimbangkan terapi tambahan bila diperlukan.',
                     ],
                 ],
+
                 'kritis' => [
-                    'diet' => [
-                        'Diet sesuai instruksi medis dan monitoring ketat.',
+                    'pola makan' => [
+                        'Program diet ketat hanya boleh dilakukan di bawah supervisi dokter spesialis.',
+                        'Pertimbangkan meal replacement atau VLCD secara medis.',
                     ],
-                    'exercise' => [
-                        'Hindari olahraga intensif tanpa pengawasan.',
-                        'Pilih aktivitas fisik stabil dan terkontrol.',
+                    'olahraga' => [
+                        'Aktivitas fisik hanya dilakukan dengan pengawasan tenaga medis atau fisioterapis.',
                     ],
-                    'note' => [
-                        'Evaluasi khusus dan pengawasan tenaga kesehatan wajib dilakukan.',
+                    'catatan' => [
+                        'Obesitas berat dengan risiko tinggi — diperlukan penanganan multidisiplin dan evaluasi lanjutan.',
                     ],
                 ],
+
             ],
         ];
 
+        // =====================================================================
+        // BUILD ROWS & INSERT
+        // =====================================================================
         $rows = [];
 
         foreach ($definitions as $groupCode => $levels) {
@@ -423,22 +462,23 @@ class RecommendationRuleSeeder extends Seeder
                 foreach ($categories as $category => $texts) {
                     foreach ($texts as $text) {
                         $rows[] = [
-                            'group_code' => $groupCode,
-                            'category' => $category,
-                            'severity_level' => $severity,
-                            'min_score' => $minScore,
-                            'max_score' => $maxScore,
+                            'group_code'         => $groupCode,
+                            'category'           => $category,
+                            'severity_level'     => $severity,
+                            'min_score'          => $minScore,
+                            'max_score'          => $maxScore,
                             'recommendation_text' => $text,
-                            'is_active' => true,
-                            'created_by' => null,
-                            'created_at' => $now,
-                            'updated_at' => $now,
+                            'is_active'          => true,
+                            'created_by'         => null,
+                            'created_at'         => $now,
+                            'updated_at'         => $now,
                         ];
                     }
                 }
             }
         }
 
+        // Insert dalam chunks untuk menghindari batas query
         foreach (array_chunk($rows, 500) as $chunk) {
             RecommendationRule::insert($chunk);
         }

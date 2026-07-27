@@ -113,6 +113,48 @@
                                 <i class="ti tabler-chart-bar me-2"></i>
                                 Rentang Skor (Fuzzy Range)
                             </h6>
+
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <h6 class="mb-0">
+                                    <i class="ti tabler-chart-bar me-2"></i>
+                                    Rentang Skor (Fuzzy Range)
+                                </h6>
+                                <button class="btn btn-sm btn-label-info d-flex align-items-center" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#scoreInfoCollapse" aria-expanded="false"
+                                    aria-controls="scoreInfoCollapse">
+                                    <i class="ti tabler-info-circle me-1"></i>
+                                    Apa itu skor ini?
+                                    <i class="ti tabler-chevron-down ms-1"></i>
+                                </button>
+                            </div>
+
+                            {{-- Collapsible explanation --}}
+                            <div class="collapse mb-3" id="scoreInfoCollapse">
+                                <div class="alert alert-info d-flex mb-0" role="alert">
+                                    <i class="ti tabler-info-circle me-2 mt-1"></i>
+                                    <div>
+                                        <strong>Apa itu rentang skor?</strong>
+                                        Skor ini adalah hasil <em>defuzzifikasi</em> (0–100) dari perhitungan sistem untuk
+                                        satu
+                                        kelompok risiko (misal. Fungsi Hati, Diabetes, dll). Sistem akan mencocokkan skor
+                                        pasien
+                                        dengan rentang <code>Min Score</code>–<code>Max Score</code> pada aturan ini untuk
+                                        menentukan rekomendasi mana yang ditampilkan. Pastikan rentang antar aturan pada
+                                        Group &amp; Severity yang sama <strong>tidak tumpang tindih</strong> dan tidak
+                                        meninggalkan celah (gap). Jika ada satu atau lebih aturan yang tumpang tindih,
+                                        sistem
+                                        akan menampilkan semuanya rekomendasi yang sesuai dengan skor pasien.
+                                        <br><br>
+                                        <strong>Contoh acuan level severity standar sistem:</strong>
+                                        <ul class="mb-0">
+                                            <li>Ringan &nbsp;: 0 – 29</li>
+                                            <li>Sedang &nbsp;: 30 – 49</li>
+                                            <li>Tinggi &nbsp;: 50 – 69</li>
+                                            <li>Kritis &nbsp;: 70 – 100</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="row">
                                 <x-inputs.group class="col-md-6">
                                     <x-inputs.text name="min_score" label="Min Score" type="number" placeholder="0"

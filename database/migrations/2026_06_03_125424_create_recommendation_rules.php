@@ -19,7 +19,7 @@ return new class extends Migration
 
             // Jenis rekomendasi
             // diet | exercise | note
-            $table->enum('category', ['diet', 'exercise', 'note']);
+            $table->enum('category', ['pola makan', 'olahraga', 'catatan']);
 
             // Tingkat keparahan klinis
             // ringan | sedang | tinggi | kritis

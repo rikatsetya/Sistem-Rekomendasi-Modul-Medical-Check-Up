@@ -80,12 +80,12 @@
                     <thead class="table-light">
                         <tr>
                             <th>#</th>
-                            <th>Group</th>
-                            <th>Severity</th>
-                            <th>Category</th>
-                            <th>Score Range</th>
-                            <th>Recommendation</th>
-                            <th width="150">Action</th>
+                            <th>Kelompok</th>
+                            <th>Tingkat Risiko</th>
+                            <th>Kategori</th>
+                            <th>Rentang Nilai</th>
+                            <th>Rekomendasi</th>
+                            <th width="150">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>

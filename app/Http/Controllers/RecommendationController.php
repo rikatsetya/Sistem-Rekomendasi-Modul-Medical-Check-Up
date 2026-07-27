@@ -15,23 +15,60 @@ use Illuminate\Contracts\Encryption\DecryptException;
  * RecommendationController
  *
  * Alur kerja:
- *  1. index()        — Dokter melihat daftar karyawan + filter tahun MCU
- *  2. generateAll()  — Satu tombol: generate rekomendasi SEMUA karyawan untuk tahun dipilih
- *  3. acceptAll()    — Batch approve semua rekomendasi pending untuk tahun dipilih
- *  4. show()         — Detail + form validasi (dengan navigasi prev/next karyawan)
- *  5. validateRec()  — approve | reject | update (edit teks saja tanpa ubah status)
- *  6. employeeView() — Karyawan lihat rekomendasi yang sudah divalidasi (read-only)
+ *  1. index()       — Dokter melihat daftar karyawan + filter tahun MCU
+ *  2. generateAll() — Generate rekomendasi Fuzzy Mamdani Hierarkis untuk semua karyawan
+ *  3. publishAll()  — Batch publish semua rekomendasi berstatus draft
+ *  4. show()        — Detail rekomendasi + navigasi prev/next
+ *  5. update()      — Dokter mengedit & menyimpan rekomendasi sebagai draft
+ *
+ * Sistem menggunakan 23 parameter MCU yang dikelompokkan ke dalam 7 kelompok
+ * (Fuzzy Mamdani Hierarkis), menghasilkan 7 skor risiko (0–100) per karyawan.
  */
 class RecommendationController extends Controller
 {
-    // Sub-category names — harus persis cocok dengan sub_categories.name di DB
-    private const SC_BMI          = 'IMT (kg/m2)';
-    private const SC_SISTOLIK     = 'Tekanan darah Sistolik (mmHg)';
-    private const SC_DIASTOLIK    = 'Tekanan darah Diastolik (mmHg)';
-    private const SC_GLUKOSA      = 'Glukosa Puasa';
-    private const SC_KOLESTEROL   = 'Chol. Total';
-    private const SC_ASAM_URAT    = 'Asam Urat';
-    private const SC_TRIGLISERIDA = 'Trigliserida';
+    // =========================================================================
+    // SUB-CATEGORY CONSTANTS
+    // Nama harus PERSIS cocok dengan kolom sub_categories.name di database.
+    // =========================================================================
+
+    // ── Kelompok 1: Fungsi Hati ───────────────────────────────────────────────
+    private const SC_GOT            = 'GOT';
+    private const SC_GPT            = 'GPT';
+
+    // ── Kelompok 2: Diabetes / Gula Darah ────────────────────────────────────
+    private const SC_GLUKOSA_PUASA  = 'Glukosa Puasa';
+    private const SC_GLUKOSA_2J_PP  = 'Glukosa 2 Jam PP';
+    private const SC_HBA1C          = 'HbA1c (NGSP)';
+
+    // ── Kelompok 3: Profil Lipid ──────────────────────────────────────────────
+    private const SC_CHOL_TOTAL     = 'Chol. Total';
+    private const SC_CHOL_LDL       = 'Chol. LDL Direk';
+    private const SC_CHOL_HDL       = 'Chol. HDL';
+    private const SC_TRIGLISERIDA   = 'Trigliserida';
+    private const SC_APO_B          = 'APO-B';
+
+    // ── Kelompok 4: Fungsi Ginjal ─────────────────────────────────────────────
+    private const SC_UREA_N         = 'Urea N';
+    private const SC_UREUM          = 'Ureum';
+    private const SC_KREATININ      = 'Kreatinin';
+    private const SC_ELFG           = 'eLFG (CKD-EPI)';
+
+    // ── Kelompok 5: Asam Urat ─────────────────────────────────────────────────
+    private const SC_ASAM_URAT      = 'Asam Urat';
+
+    // ── Kelompok 6: Kardiovaskular & Tanda Vital ──────────────────────────────
+    private const SC_NADI           = 'Nadi (kali/menit)';
+    private const SC_PERNAFASAN     = 'Pernafasan (kali/menit)';
+    private const SC_SISTOLIK       = 'Tekanan darah Sistolik (mmHg)';
+    private const SC_DIASTOLIK      = 'Tekanan darah Diastolik (mmHg)';
+
+    // ── Kelompok 7: Antropometri & Obesitas ───────────────────────────────────
+    private const SC_TINGGI_BADAN   = 'Tinggi Badan (cm)';
+    private const SC_BERAT_BADAN    = 'Berat Badan (kg)';
+    private const SC_IMT            = 'IMT (kg/m2)';
+    private const SC_LINGKAR_PERUT  = 'Lingkar Perut (cm)';
+
+    // =========================================================================
 
     public function __construct(private FuzzyMamdaniService $fuzzy)
     {
@@ -50,11 +87,7 @@ class RecommendationController extends Controller
      */
     public function index(Request $request)
     {
-        /**
-         * ==============================
-         * AVAILABLE YEARS
-         * ==============================
-         */
+        // ── Tahun yang tersedia ───────────────────────────────────────────────
         $availableYears = Value::distinct()
             ->orderByDesc('tahun')
             ->pluck('tahun');
@@ -64,57 +97,33 @@ class RecommendationController extends Controller
             $availableYears->first() ?? date('Y')
         );
 
-        /**
-         * ==============================
-         * SEARCH PARAM
-         * ==============================
-         */
+        // ── Parameter pencarian ───────────────────────────────────────────────
         $search = trim($request->get('search'));
 
-        /**
-         * ==============================
-         * USERS QUERY (SERVER-SIDE)
-         * ==============================
-         */
-        $usersQuery = User::where('peran', 2)
-            ->orderBy('name');
+        // ── Query karyawan ────────────────────────────────────────────────────
+        $usersQuery = User::where('peran', 2)->orderBy('name');
 
         if ($search) {
             $usersQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('kopeg', 'like', "%{$search}%")
-                    ->orWhere('divisi', 'like', "%{$search}%");
+                  ->orWhere('kopeg', 'like', "%{$search}%")
+                  ->orWhere('divisi', 'like', "%{$search}%");
             });
         }
 
-        $perPage = (int) $request->get('per_page', 10); // default 10
+        $perPage = (int) $request->get('per_page', 10);
         $perPage = in_array($perPage, [10, 25, 50]) ? $perPage : 10;
-        // SERVER-SIDE PAGINATION
-        $users = $usersQuery->paginate($perPage)->withQueryString();
+        $users   = $usersQuery->paginate($perPage)->withQueryString();
 
-        /**
-         * ==============================
-         * RECOMMENDATIONS (YEAR-BASED)
-         * ==============================
-         */
+        // ── Rekomendasi berdasarkan tahun ─────────────────────────────────────
         $recsByUser = Recommendation::where('tahun', $selectedYear)
             ->get()
             ->keyBy('user_id');
 
-        /**
-         * ==============================
-         * STATISTICS
-         * ==============================
-         */
-        $generatedCount = $recsByUser
-            ->where('status', 'draft')
-            ->count();
-
-        $publishedCount = $recsByUser
-            ->where('status', 'published')
-            ->count();
-
-        $rawCount = $users->total() - $recsByUser->count();
+        // ── Statistik ─────────────────────────────────────────────────────────
+        $generatedCount = $recsByUser->where('status', 'draft')->count();
+        $publishedCount = $recsByUser->where('status', 'published')->count();
+        $rawCount       = $users->total() - $recsByUser->count();
 
         return view('app.rekomendasi.index', compact(
             'users',
@@ -129,12 +138,12 @@ class RecommendationController extends Controller
     }
 
     // =========================================================================
-    // 2. GENERATE ALL — Satu tombol untuk semua karyawan
+    // 2. GENERATE ALL — Fuzzy Mamdani Hierarkis untuk semua karyawan
     // =========================================================================
 
     /**
-     * Bangkitkan rekomendasi Fuzzy Mamdani untuk SEMUA karyawan
-     * yang mempunyai data MCU pada tahun yang dipilih.
+     * Bangkitkan rekomendasi Fuzzy Mamdani Hierarkis (23 parameter, 7 kelompok)
+     * untuk SEMUA karyawan yang mempunyai data MCU pada tahun yang dipilih.
      *
      * Route: POST /rekomendasi/generate-all
      */
@@ -159,7 +168,7 @@ class RecommendationController extends Controller
         $generated = 0;
 
         foreach ($users as $user) {
-            // Ambil semua nilai MCU karyawan ini untuk tahun terpilih
+            // ── Ambil semua nilai MCU karyawan ini, di-index per nama sub-kategori ──
             $values = Value::with('subCategory')
                 ->where('user_id', $user->id)
                 ->where('tahun', $tahun)
@@ -168,53 +177,116 @@ class RecommendationController extends Controller
 
             // Helper: ambil nilai numerik, default 0 jika kosong
             $get = fn(string $name, float $default = 0): float =>
-            (float) ($values->get($name)?->nilai ?? $default);
+                (float) ($values->get($name)?->nilai ?? $default);
 
-            // Susun array input untuk FuzzyMamdaniService
+            // ── Susun 23 input fuzzy per kelompok ────────────────────────────
             $inputs = [
-                'bmi'          => $get(self::SC_BMI),
-                'sistolik'     => $get(self::SC_SISTOLIK),
-                'diastolik'    => $get(self::SC_DIASTOLIK),
-                'glukosa'      => $get(self::SC_GLUKOSA),
-                'kolesterol'   => $get(self::SC_KOLESTEROL),
-                'asam_urat'    => $get(self::SC_ASAM_URAT),
-                'trigliserida' => $get(self::SC_TRIGLISERIDA),
-                'gender'       => $user->gender ?? 'L',
+                // Kelompok 1: Fungsi Hati
+                'got'           => $get(self::SC_GOT),
+                'gpt'           => $get(self::SC_GPT),
+
+                // Kelompok 2: Diabetes
+                'glukosa_puasa' => $get(self::SC_GLUKOSA_PUASA),
+                'glukosa_2j_pp' => $get(self::SC_GLUKOSA_2J_PP),
+                'hba1c'         => $get(self::SC_HBA1C),
+
+                // Kelompok 3: Profil Lipid
+                'chol_total'    => $get(self::SC_CHOL_TOTAL),
+                'chol_ldl'      => $get(self::SC_CHOL_LDL),
+                'chol_hdl'      => $get(self::SC_CHOL_HDL),
+                'trigliserida'  => $get(self::SC_TRIGLISERIDA),
+                'apo_b'         => $get(self::SC_APO_B),
+
+                // Kelompok 4: Fungsi Ginjal
+                'urea_n'        => $get(self::SC_UREA_N),
+                'ureum'         => $get(self::SC_UREUM),
+                'kreatinin'     => $get(self::SC_KREATININ),
+                'elfg'          => $get(self::SC_ELFG),
+
+                // Kelompok 5: Asam Urat
+                'asam_urat'     => $get(self::SC_ASAM_URAT),
+
+                // Kelompok 6: Kardiovaskular
+                'nadi'          => $get(self::SC_NADI),
+                'pernafasan'    => $get(self::SC_PERNAFASAN),
+                'sistolik'      => $get(self::SC_SISTOLIK),
+                'diastolik'     => $get(self::SC_DIASTOLIK),
+
+                // Kelompok 7: Antropometri
+                'tinggi_badan'  => $get(self::SC_TINGGI_BADAN),
+                'berat_badan'   => $get(self::SC_BERAT_BADAN),
+                'imt'           => $get(self::SC_IMT),
+                'lingkar_perut' => $get(self::SC_LINGKAR_PERUT),
+
+                // Meta
+                'gender'        => $user->gender ?? 'L',
             ];
 
-            // Jalankan pipeline Fuzzy Mamdani
-            $result = $this->fuzzy->process($inputs);
+            // ── Jalankan pipeline Fuzzy Mamdani Hierarkis ────────────────────
+            try {
+                $result = $this->fuzzy->process($inputs);
+            } catch (\Throwable $e) {
+                Log::warning("FuzzyMamdani: Gagal memproses user {$user->id}: " . $e->getMessage());
+                continue;
+            }
 
-            // Simpan atau timpa rekomendasi
+            // ── Simpan atau timpa rekomendasi ─────────────────────────────────
             Recommendation::updateOrCreate(
                 [
                     'user_id' => $user->id,
                     'tahun'   => $tahun,
                 ],
                 [
-                    // Snapshot input
-                    'bmi'           => $inputs['bmi'],
+                    // ── Snapshot input Kelompok 1: Fungsi Hati ─────────────
+                    'got'           => $inputs['got'],
+                    'gpt'           => $inputs['gpt'],
+
+                    // ── Snapshot input Kelompok 2: Diabetes ────────────────
+                    'glukosa_puasa' => $inputs['glukosa_puasa'],
+                    'glukosa_2j_pp' => $inputs['glukosa_2j_pp'],
+                    'hba1c'         => $inputs['hba1c'],
+
+                    // ── Snapshot input Kelompok 3: Profil Lipid ────────────
+                    'chol_total'    => $inputs['chol_total'],
+                    'chol_ldl'      => $inputs['chol_ldl'],
+                    'chol_hdl'      => $inputs['chol_hdl'],
+                    'trigliserida'  => $inputs['trigliserida'],
+                    'apo_b'         => $inputs['apo_b'],
+
+                    // ── Snapshot input Kelompok 4: Fungsi Ginjal ───────────
+                    'urea_n'        => $inputs['urea_n'],
+                    'ureum'         => $inputs['ureum'],
+                    'kreatinin'     => $inputs['kreatinin'],
+                    'elfg'          => $inputs['elfg'],
+
+                    // ── Snapshot input Kelompok 5: Asam Urat ───────────────
+                    'asam_urat'     => $inputs['asam_urat'],
+
+                    // ── Snapshot input Kelompok 6: Kardiovaskular ──────────
+                    'nadi'          => $inputs['nadi'],
+                    'pernafasan'    => $inputs['pernafasan'],
                     'sistolik'      => $inputs['sistolik'],
                     'diastolik'     => $inputs['diastolik'],
-                    'glukosa_puasa' => $inputs['glukosa'],
-                    'kolesterol'    => $inputs['kolesterol'],
-                    'asam_urat'     => $inputs['asam_urat'],
-                    'trigliserida'  => $inputs['trigliserida'],
 
-                    // Output fuzzy
+                    // ── Snapshot input Kelompok 7: Antropometri ────────────
+                    'tinggi_badan'  => $inputs['tinggi_badan'],
+                    'berat_badan'   => $inputs['berat_badan'],
+                    'imt'           => $inputs['imt'],
+                    'lingkar_perut' => $inputs['lingkar_perut'],
+
+                    // ── Output Fuzzy Hierarki ───────────────────────────────
+                    'group_scores'  => json_encode($result['group_scores'], JSON_UNESCAPED_UNICODE),
                     'risk_score'    => $result['risk_score'],
                     'risk_label'    => $result['risk_label'],
+                    'duration'      => $result['duration'],
 
-                    // Teks rekomendasi auto-generate
-                    'rec_diet' => json_encode($result['rec_diet'], JSON_UNESCAPED_UNICODE),
-                    'rec_exercise' => json_encode($result['rec_exercise'], JSON_UNESCAPED_UNICODE),
-                    'rec_notes' => json_encode($result['rec_notes'], JSON_UNESCAPED_UNICODE),
+                    // ── Teks rekomendasi (JSON array) ───────────────────────
+                    'rec_diet'      => json_encode($result['rec_diet'],     JSON_UNESCAPED_UNICODE),
+                    'rec_exercise'  => json_encode($result['rec_exercise'], JSON_UNESCAPED_UNICODE),
+                    'rec_notes'     => json_encode($result['rec_notes'],    JSON_UNESCAPED_UNICODE),
 
-                    // NEW FLOW:
-                    // Hasil generate selalu menjadi DRAFT
+                    // ── Status & validasi ───────────────────────────────────
                     'status'        => 'draft',
-
-                    // Validasi eksplisit dihilangkan
                     'doctor_id'     => null,
                     'validated_at'  => null,
                     'doctor_notes'  => null,
@@ -225,26 +297,26 @@ class RecommendationController extends Controller
         }
 
         Log::info(
-            "FuzzyMamdani: {$generated} rekomendasi (draft) dibangkitkan untuk tahun {$tahun} oleh user " . Auth::id()
+            "FuzzyMamdani Hierarkis: {$generated} rekomendasi (draft) dibangkitkan untuk tahun {$tahun} oleh user " . Auth::id()
         );
 
         return redirect()
             ->route('rekomendasi.index', ['tahun' => $tahun])
             ->with(
                 'success',
-                "Berhasil membangkitkan {$generated} rekomendasi untuk tahun {$tahun}. Status disimpan sebagai DRAFT dan belum dipublish."
+                "Berhasil membangkitkan {$generated} rekomendasi untuk tahun {$tahun}. Status disimpan sebagai DRAFT."
             );
     }
 
     // =========================================================================
-    // 3. ACCEPT ALL — Batch approve semua pending
+    // 3. PUBLISH ALL — Batch publish semua draft
     // =========================================================================
 
     /**
-     * Setujui semua rekomendasi yang masih berstatus 'pending'
+     * Publish semua rekomendasi yang masih berstatus 'draft'
      * untuk tahun yang dipilih.
      *
-     * Route: POST /rekomendasi/accept-all
+     * Route: POST /rekomendasi/publish-all
      */
     public function publishAll(Request $request)
     {
@@ -276,13 +348,15 @@ class RecommendationController extends Controller
     }
 
     // =========================================================================
-    // 4. SHOW — Detail + form validasi + navigasi prev/next
+    // 4. SHOW — Detail rekomendasi + navigasi prev/next
     // =========================================================================
 
+    /**
+     * Route: GET /rekomendasi/{id}
+     */
     public function show(string $id, Request $request)
     {
         try {
-            // 🔐 decrypt first
             $decryptedId = decrypt($id);
 
             $rec   = Recommendation::with('user', 'doctor')->findOrFail($decryptedId);
@@ -316,29 +390,27 @@ class RecommendationController extends Controller
                 'total'
             ));
         } catch (DecryptException $e) {
-            return redirect()
-                ->back()
-                ->with('error', 'ID rekomendasi tidak valid.');
+            return redirect()->back()->with('error', 'ID rekomendasi tidak valid.');
         } catch (\Throwable $e) {
             Log::error('Show Recommendation Error', [
                 'id'    => $id,
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect()
-                ->back()
-                ->with('error', 'Terjadi kesalahan saat membuka detail rekomendasi.');
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat membuka detail rekomendasi.');
         }
     }
 
     // =========================================================================
-    // 5. UPDATE RECOMMENDATION — save as draft
+    // 5. UPDATE — Dokter mengedit teks rekomendasi
     // =========================================================================
 
+    /**
+     * Route: PUT /rekomendasi/{id}
+     */
     public function update(Request $request, string $id)
     {
         try {
-            // 🔐 decrypt first
             $decryptedId = decrypt($id);
 
             $request->validate([
@@ -367,20 +439,14 @@ class RecommendationController extends Controller
                 ->route('rekomendasi.index', ['tahun' => $tahun])
                 ->with('success', 'Perubahan rekomendasi berhasil disimpan sebagai draft.');
         } catch (DecryptException $e) {
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'ID rekomendasi tidak valid.');
+            return redirect()->back()->withInput()->with('error', 'ID rekomendasi tidak valid.');
         } catch (\Throwable $e) {
             Log::error('Update Recommendation Error', [
                 'id'    => $id,
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect()
-                ->back()
-                ->withInput()
-                ->with('error', 'Gagal menyimpan rekomendasi. Silakan coba lagi.');
+            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan rekomendasi. Silakan coba lagi.');
         }
     }
 }
