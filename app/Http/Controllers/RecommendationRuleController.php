@@ -49,14 +49,13 @@ class RecommendationRuleController extends Controller
     public function create()
     {
         $groups = [
-            'global' => 'Global',
-            'obesitas_metabolik' => 'Obesitas Metabolik',
-            'diabetes' => 'Diabetes',
-            'kardiovaskular' => 'Kardiovaskular',
-            'ginjal' => 'Ginjal',
-            'hati' => 'Hati',
-            'hiperurisemia' => 'Hiperurisemia',
-            'hemodinamik' => 'Hemodinamik',
+            'fungsi_hati'    => 'Fungsi Hati',
+            'diabetes'       => 'Diabetes / Gula Darah',
+            'profil_lipid'   => 'Profil Lipid',
+            'fungsi_ginjal'  => 'Fungsi Ginjal',
+            'asam_urat'      => 'Asam Urat',
+            'kardiovaskular' => 'Kardiovaskular & Tanda Vital',
+            'antropometri'   => 'Antropometri & Obesitas',
         ];
 
         $severities = [
@@ -67,9 +66,9 @@ class RecommendationRuleController extends Controller
         ];
 
         $categories = [
-            'diet' => 'Diet',
-            'exercise' => 'Exercise',
-            'notes' => 'Notes',
+            'pola makan' => 'Pola Makan',
+            'olahraga' => 'Olahraga',
+            'catatan' => 'Catatan',
         ];
 
         return view('app.recommendation_rules.create', compact(
@@ -87,7 +86,7 @@ class RecommendationRuleController extends Controller
         try {
             $validated = $request->validate([
                 'group_code' => 'required|string|max:50',
-                'category' => 'required|in:diet,exercise,notes',
+                'category' => 'required|in:pola makan,olahraga,catatan',
                 'severity_level' => 'required|in:ringan,sedang,tinggi,kritis',
                 'min_score' => 'required|numeric|min:0|max:100',
                 'max_score' => 'required|numeric|min:0|max:100|gte:min_score',
@@ -137,14 +136,13 @@ class RecommendationRuleController extends Controller
             $rule = RecommendationRule::findOrFail($id);
 
             $groups = [
-                'global' => 'Global',
-                'obesitas_metabolik' => 'Obesitas Metabolik',
-                'diabetes' => 'Diabetes',
-                'kardiovaskular' => 'Kardiovaskular',
-                'ginjal' => 'Ginjal',
-                'hati' => 'Hati',
-                'hiperurisemia' => 'Hiperurisemia',
-                'hemodinamik' => 'Hemodinamik',
+                'fungsi_hati'    => 'Fungsi Hati',
+                'diabetes'       => 'Diabetes / Gula Darah',
+                'profil_lipid'   => 'Profil Lipid',
+                'fungsi_ginjal'  => 'Fungsi Ginjal',
+                'asam_urat'      => 'Asam Urat',
+                'kardiovaskular' => 'Kardiovaskular & Tanda Vital',
+                'antropometri'   => 'Antropometri & Obesitas',
             ];
 
             $severities = [
@@ -155,9 +153,9 @@ class RecommendationRuleController extends Controller
             ];
 
             $categories = [
-                'diet' => 'Diet',
-                'exercise' => 'Exercise',
-                'notes' => 'Notes',
+                'pola makan' => 'Pola Makan',
+                'olahraga' => 'Olahraga',
+                'catatan' => 'Catatan',
             ];
 
             return view('app.recommendation_rules.edit', compact(
@@ -184,7 +182,7 @@ class RecommendationRuleController extends Controller
 
             $validated = $request->validate([
                 'group_code' => 'required|string|max:50',
-                'category' => 'required|in:diet,exercise,notes',
+                'category' => 'required|in:pola makan,olahraga,catatan',
                 'severity_level' => 'required|in:ringan,sedang,tinggi,kritis',
                 'min_score' => 'required|numeric|min:0|max:100',
                 'max_score' => 'required|numeric|min:0|max:100|gte:min_score',
