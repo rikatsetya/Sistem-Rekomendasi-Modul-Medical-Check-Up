@@ -59,9 +59,9 @@ class FuzzyMamdaniService
     private function fuzzifyGOT(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 30.0, 45.0),
-            'sedang'  => $this->triangle($x, 35.0, 60.0, 90.0),
-            'tinggi'  => $this->trapezoidRight($x, 75.0, 100.0),
+            'normal'  => $this->trapezoidLeft($x, 45.0, 50.0),
+            'sedang'  => $this->triangle($x, 45.0, 52.5, 60.0),
+            'tinggi'  => $this->trapezoidRight($x, 55.0, 60.0),
         ];
     }
 
@@ -69,9 +69,9 @@ class FuzzyMamdaniService
     private function fuzzifyGPT(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 30.0, 45.0),
-            'sedang'  => $this->triangle($x, 35.0, 60.0, 90.0),
-            'tinggi'  => $this->trapezoidRight($x, 75.0, 100.0),
+            'normal'  => $this->trapezoidLeft($x, 45.0, 50.0),
+            'sedang'  => $this->triangle($x, 45.0, 52.5, 60.0),
+            'tinggi'  => $this->trapezoidRight($x, 55.0, 60.0),
         ];
     }
 
@@ -87,9 +87,9 @@ class FuzzyMamdaniService
     private function fuzzifyGlukosaPuasa(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 90.0, 110.0),
-            'pra_dm'  => $this->triangle($x, 90.0, 112.0, 135.0),
-            'dm'      => $this->trapezoidRight($x, 120.0, 140.0),
+            'rendah'  => $this->trapezoidLeft($x, 65.0, 70.0),
+            'normal'  => $this->triangle($x, 65.0, 95.5, 126.0),
+            'tinggi'  => $this->trapezoidRight($x, 120.0, 126.0),
         ];
     }
 
@@ -97,9 +97,9 @@ class FuzzyMamdaniService
     private function fuzzifyGlukosa2jPP(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 120.0, 150.0),
-            'pra_dm'  => $this->triangle($x, 130.0, 170.0, 210.0),
-            'dm'      => $this->trapezoidRight($x, 190.0, 220.0),
+            'rendah'  => $this->trapezoidLeft($x, 65.0, 70.0),
+            'normal'  => $this->triangle($x, 65.0, 132.5, 200.0),
+            'tinggi'  => $this->trapezoidRight($x, 180.0, 200.0),
         ];
     }
 
@@ -107,9 +107,9 @@ class FuzzyMamdaniService
     private function fuzzifyHbA1c(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 5.0, 5.8),
-            'pra_dm'  => $this->triangle($x, 5.5, 6.0, 6.6),
-            'dm'      => $this->trapezoidRight($x, 6.3, 6.8),
+            'normal'  => $this->trapezoidLeft($x, 5.6, 5.8),
+            'sedang'  => $this->triangle($x, 5.6, 6.0, 6.5),
+            'tinggi'      => $this->trapezoidRight($x, 6.3, 6.5),
         ];
     }
 
@@ -127,9 +127,9 @@ class FuzzyMamdaniService
     private function fuzzifyCholTotal(float $x): array
     {
         return [
-            'optimal' => $this->trapezoidLeft($x, 170.0, 210.0),
-            'batas_t' => $this->triangle($x, 185.0, 220.0, 255.0),
-            'tinggi'  => $this->trapezoidRight($x, 230.0, 260.0),
+            'normal' => $this->trapezoidLeft($x, 210.0, 220.0),
+            'sedang' => $this->triangle($x, 210.0, 230.0, 250.0),
+            'tinggi'  => $this->trapezoidRight($x, 240.0, 250.0),
         ];
     }
 
@@ -137,10 +137,9 @@ class FuzzyMamdaniService
     private function fuzzifyCholLDL(float $x): array
     {
         return [
-            'optimal'   => $this->trapezoidLeft($x, 80.0, 110.0),
-            'batas_t'   => $this->triangle($x, 95.0, 115.0, 140.0),
-            'tinggi'    => $this->triangle($x, 125.0, 145.0, 170.0),
-            'sangat_t'  => $this->trapezoidRight($x, 155.0, 175.0),
+            'normal'   => $this->trapezoidLeft($x, 140.0, 150.0),
+            'sedang'   => $this->triangle($x, 140.0, 170.0, 200.0),
+            'tinggi'  => $this->trapezoidRight($x, 180.0, 200.0),
         ];
     }
 
@@ -152,11 +151,11 @@ class FuzzyMamdaniService
     {
         return [
             // HDL rendah (< 40): bahaya lipid
-            'rendah'   => $this->trapezoidLeft($x, 35.0, 50.0),
+            'rendah'   => $this->trapezoidLeft($x, 15.0, 20.0),
             // HDL kurang (40–60)
-            'kurang'   => $this->triangle($x, 38.0, 52.0, 66.0),
+            'kurang'   => $this->triangle($x, 15.0, 30.0, 45.0),
             // HDL optimal (≥ 60): pelindung kardiovaskular
-            'optimal'  => $this->trapezoidRight($x, 55.0, 65.0),
+            'optimal'  => $this->trapezoidRight($x, 40.0, 45.0),
         ];
     }
 
@@ -167,17 +166,7 @@ class FuzzyMamdaniService
             'normal'   => $this->trapezoidLeft($x, 120.0, 165.0),
             'batas_t'  => $this->triangle($x, 135.0, 175.0, 215.0),
             'tinggi'   => $this->triangle($x, 185.0, 320.0, 510.0),
-            'sangat_t' => $this->trapezoidRight($x, 460.0, 520.0),
-        ];
-    }
-
-    /** Fuzzifikasi Apo-B (mg/dL) */
-    private function fuzzifyApoB(float $x): array
-    {
-        return [
-            'normal'  => $this->trapezoidLeft($x, 80.0, 110.0),
-            'batas_t' => $this->triangle($x, 95.0, 115.0, 140.0),
-            'tinggi'  => $this->trapezoidRight($x, 125.0, 145.0),
+            'sangat_t' => $this->trapezoidRight($x, 460.0, 510.0),
         ];
     }
 
@@ -194,9 +183,9 @@ class FuzzyMamdaniService
     private function fuzzifyUreaN(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 15.0, 25.0),
-            'batas_t' => $this->triangle($x, 18.0, 30.0, 45.0),
-            'tinggi'  => $this->trapezoidRight($x, 38.0, 55.0),
+            'normal'  => $this->trapezoidLeft($x, 20.0, 25.0),
+            'batas_t' => $this->triangle($x, 20.0, 25.0, 30.0),
+            'tinggi'  => $this->trapezoidRight($x, 25.0, 30.0),
         ];
     }
 
@@ -204,9 +193,9 @@ class FuzzyMamdaniService
     private function fuzzifyUreum(float $x): array
     {
         return [
-            'normal'  => $this->trapezoidLeft($x, 35.0, 55.0),
-            'batas_t' => $this->triangle($x, 45.0, 75.0, 110.0),
-            'tinggi'  => $this->trapezoidRight($x, 90.0, 120.0),
+            'normal'  => $this->trapezoidLeft($x, 13.0, 15.0),
+            'batas_t' => $this->triangle($x, 13.0, 29.0, 45.0),
+            'tinggi'  => $this->trapezoidRight($x, 43.0, 45.0),
         ];
     }
 
@@ -214,17 +203,13 @@ class FuzzyMamdaniService
      * Fuzzifikasi Kreatinin (mg/dL) — threshold berbeda per gender.
      *   L: Normal < 1.2, P: Normal < 1.1
      */
-    private function fuzzifyKreatinin(float $x, string $gender): array
+    private function fuzzifyKreatinin(float $x): array
     {
-        $normalTop  = ($gender === 'P') ? 1.1  : 1.2;
-        $batasTop   = $normalTop + 0.4;
-        $tinggiStart = $normalTop + 0.3;
-        $tinggiTop  = $normalTop + 1.0;
 
         return [
-            'normal'  => $this->trapezoidLeft($x, $normalTop - 0.2, $normalTop + 0.15),
-            'batas_t' => $this->triangle($x, $normalTop, $normalTop + 0.25, $batasTop),
-            'tinggi'  => $this->trapezoidRight($x, $tinggiStart, $tinggiTop),
+            'normal'  => $this->trapezoidLeft($x, 1.3, 1.5),
+            'batas_t' => $this->triangle($x, 1.3, 1.5, 1.8),
+            'tinggi'  => $this->trapezoidRight($x, 1.5, 1.8),
         ];
     }
 
@@ -236,13 +221,11 @@ class FuzzyMamdaniService
     {
         return [
             // eLFG normal / G1 (≥ 90): fungsi ginjal baik
-            'normal'   => $this->trapezoidRight($x, 80.0, 95.0),
+            'rendah'   => $this->trapezoidLeft($x, 60.0, 70.0),
             // eLFG G2 (60–89): penurunan ringan
-            'batas_t'  => $this->triangle($x, 50.0, 72.0, 94.0),
-            // eLFG G3 (30–59): penurunan sedang
-            'rendah'   => $this->triangle($x, 20.0, 42.0, 68.0),
+            'kurang'  => $this->triangle($x, 60.0, 85.0, 110.0),
             // eLFG G4-G5 (< 30): gagal ginjal
-            'kritis'   => $this->trapezoidLeft($x, 20.0, 35.0),
+            'optimal'   => $this->trapezoidRight($x, 100.0, 110.0),
         ];
     }
 
@@ -256,17 +239,13 @@ class FuzzyMamdaniService
     /**
      * Fuzzifikasi Asam Urat (mg/dL) — gender-aware.
      */
-    private function fuzzifyAsamUrat(float $x, string $gender): array
+    private function fuzzifyAsamUrat(float $x): array
     {
-        $normalTop   = ($gender === 'P') ? 6.0 : 7.0;
-        $batasTop    = $normalTop + 1.0;
-        $tinggiStart = $normalTop + 0.5;
-        $tinggiTop   = $normalTop + 2.0;
 
         return [
-            'normal'   => $this->trapezoidLeft($x, $normalTop - 1.0, $normalTop + 0.3),
-            'pra_t'    => $this->triangle($x, $normalTop - 0.5, $normalTop + 0.5, $batasTop + 0.5),
-            'tinggi'   => $this->trapezoidRight($x, $tinggiStart, $tinggiTop),
+            'normal'   => $this->trapezoidLeft($x, 7.0, 8.0),
+            'pra_t'    => $this->triangle($x, 7.0, 8.5, 10.0),
+            'tinggi'   => $this->trapezoidRight($x, 9.0, 10.0),
         ];
     }
 
@@ -283,14 +262,14 @@ class FuzzyMamdaniService
     private function fuzzifyNadi(float $x): array
     {
         return [
-            // Normal: 60–100 bpm (MF segitiga dengan puncak di 80)
-            'normal'    => $this->triangle($x, 55.0, 80.0, 105.0),
             // Bradikardi: < 60
-            'bradikardi' => $this->trapezoidLeft($x, 45.0, 65.0),
+            'bradikardi' => $this->trapezoidLeft($x, 60.0, 65.0),
+            // Normal: 60–100 bpm (MF segitiga dengan puncak di 80)
+            'normal'    => $this->triangle($x, 60.0, 90.0, 120.0),
             // Takikardi: > 100
-            'takikardi'  => $this->trapezoidRight($x, 95.0, 120.0),
+            'takikardi'  => $this->triangle($x, 110.0, 130.0, 150.0),
             // Sangat cepat: > 120 (kritis)
-            'kritis'     => $this->trapezoidRight($x, 115.0, 140.0),
+            'kritis'     => $this->trapezoidRight($x, 140.0, 150.0),
         ];
     }
 
@@ -300,7 +279,7 @@ class FuzzyMamdaniService
         return [
             'normal'  => $this->triangle($x, 10.0, 16.0, 22.0),
             'sedang'  => $this->triangle($x, 18.0, 25.0, 34.0),
-            'tinggi'  => $this->trapezoidRight($x, 28.0, 38.0),
+            'tinggi'  => $this->trapezoidRight($x, 28.0, 34.0),
         ];
     }
 
@@ -308,10 +287,10 @@ class FuzzyMamdaniService
     private function fuzzifySistolik(float $x): array
     {
         return [
-            'normal'    => $this->trapezoidLeft($x, 110.0, 130.0),
-            'pra_hiper' => $this->triangle($x, 110.0, 130.0, 150.0),
-            'hiper_g1'  => $this->triangle($x, 130.0, 150.0, 170.0),
-            'hiper_g2'  => $this->trapezoidRight($x, 155.0, 175.0),
+            'normal'    => $this->trapezoidLeft($x, 120.0, 130.0),
+            'pra_hiper' => $this->triangle($x, 120.0, 130.0, 140.0),
+            'hiper_g1'  => $this->triangle($x, 135.0, 150.0, 165.0),
+            'hiper_g2'  => $this->trapezoidRight($x, 140.0, 165.0),
         ];
     }
 
@@ -319,10 +298,10 @@ class FuzzyMamdaniService
     private function fuzzifyDiastolik(float $x): array
     {
         return [
-            'normal'    => $this->trapezoidLeft($x, 70.0, 85.0),
-            'pra_hiper' => $this->triangle($x, 75.0, 84.0, 95.0),
-            'hiper_g1'  => $this->triangle($x, 85.0, 94.0, 105.0),
-            'hiper_g2'  => $this->trapezoidRight($x, 98.0, 110.0),
+            'normal'    => $this->trapezoidLeft($x, 80.0, 85.0),
+            'pra_hiper' => $this->triangle($x, 80.0, 87.5, 95.0),
+            'hiper_g1'  => $this->triangle($x, 90.0, 97.5, 105.0),
+            'hiper_g2'  => $this->trapezoidRight($x, 100.0, 105.0),
         ];
     }
 
@@ -340,9 +319,9 @@ class FuzzyMamdaniService
     {
         return [
             'kurus'    => $this->trapezoidLeft($x, 16.0, 18.5),
-            'normal'   => $this->triangle($x, 18.5, 20.7, 23.0),
+            'normal'   => $this->triangle($x, 16.0, 20.7, 23.0),
             'gemuk'    => $this->triangle($x, 22.0, 25.0, 28.0),
-            'obesitas' => $this->trapezoidRight($x, 26.5, 30.0),
+            'obesitas' => $this->trapezoidRight($x, 26.5, 28.0),
         ];
     }
 
@@ -351,21 +330,14 @@ class FuzzyMamdaniService
      *   L: Normal < 90 | Risiko 90–102 | Tinggi ≥ 102
      *   P: Normal < 80 | Risiko 80–88  | Tinggi ≥ 88
      */
-    private function fuzzifyLingkarPerut(float $x, string $gender): array
+    private function fuzzifyLingkarPerut(float $x): array
     {
-        if ($gender === 'P') {
-            return [
-                'normal'  => $this->trapezoidLeft($x, 72.0, 83.0),
-                'risiko'  => $this->triangle($x, 78.0, 84.0, 93.0),
-                'tinggi'  => $this->trapezoidRight($x, 87.0, 100.0),
-            ];
-        }
 
         // Default Laki-laki
         return [
             'normal'  => $this->trapezoidLeft($x, 80.0, 93.0),
-            'risiko'  => $this->triangle($x, 88.0, 96.0, 106.0),
-            'tinggi'  => $this->trapezoidRight($x, 100.0, 115.0),
+            'risiko'  => $this->triangle($x, 80.0, 96.0, 106.0),
+            'tinggi'  => $this->trapezoidRight($x, 100.0, 106.0),
         ];
     }
 
@@ -431,26 +403,54 @@ class FuzzyMamdaniService
         $sedang = 0.0;
         $tinggi = 0.0;
 
-        // R01
-        $sehat = max($sehat, min($mGlukPuasa['normal'], $mGluk2jPP['normal'], $mHbA1c['normal']));
+        // R01: seluruh indikator normal
+        $r01 = min(
+            $mGlukPuasa['normal'],
+            $mGluk2jPP['normal'],
+            $mHbA1c['normal']
+        );
 
-        // R02: Salah satu pra-DM
-        $sedang = max($sedang, $mGlukPuasa['pra_dm']);
-        $sedang = max($sedang, $mGluk2jPP['pra_dm']);
-        $sedang = max($sedang, $mHbA1c['pra_dm']);
+        $sehat = max($sehat, $r01);
 
-        // R03–R05: Salah satu sudah DM → langsung risiko tinggi
-        $tinggi = max($tinggi, $mGlukPuasa['dm']);
-        $tinggi = max($tinggi, $mGluk2jPP['dm']);
-        $tinggi = max($tinggi, $mHbA1c['dm']);
+        // R02: HbA1c sedang
+        $sedang = max($sedang, $mHbA1c['sedang']);
 
-        // R06: Dua parameter pra-DM → tinggi
-        $tinggi = max($tinggi, min($mGlukPuasa['pra_dm'], $mGluk2jPP['pra_dm']));
+        // R03-R04: glukosa tinggi
+        $tinggi = max(
+            $tinggi,
+            $mGlukPuasa['tinggi'],
+            $mGluk2jPP['tinggi']
+        );
 
-        // R07: GPS + HbA1c pra-DM → tinggi
-        $tinggi = max($tinggi, min($mGlukPuasa['pra_dm'], $mHbA1c['pra_dm']));
+        // R05: HbA1c tinggi
+        $tinggi = max($tinggi, $mHbA1c['tinggi']);
 
-        return ['sehat' => $sehat, 'risiko_sedang' => $sedang, 'risiko_tinggi' => $tinggi];
+        // Dua indikator glukosa berada di luar normal
+        $r06 = min(
+            $mGlukPuasa['tinggi'],
+            $mGluk2jPP['tinggi']
+        );
+
+        $tinggi = max($tinggi, $r06);
+
+        // HbA1c sedang disertai glukosa tinggi
+        $r07 = min(
+            $mGlukPuasa['tinggi'],
+            $mHbA1c['sedang']
+        );
+
+        $r08 = min(
+            $mGluk2jPP['tinggi'],
+            $mHbA1c['sedang']
+        );
+
+        $tinggi = max($tinggi, $r07, $r08);
+
+        return [
+            'sehat' => $sehat,
+            'risiko_sedang' => $sedang,
+            'risiko_tinggi' => $tinggi,
+        ];
     }
 
     /**
@@ -471,53 +471,140 @@ class FuzzyMamdaniService
         array $mCholTotal,
         array $mLDL,
         array $mHDL,
-        array $mTG,
-        array $mApoB
+        array $mTG
     ): array {
         $sehat  = 0.0;
         $sedang = 0.0;
         $tinggi = 0.0;
 
-        // R01
-        $sehat = max($sehat, min(
-            $mCholTotal['optimal'],
-            $mLDL['optimal'],
+        /*
+     * R01:
+     * IF Kolesterol Total normal
+     * AND LDL normal
+     * AND HDL optimal
+     * AND Trigliserida normal
+     * THEN Sehat
+     */
+        $r01 = min(
+            $mCholTotal['normal'],
+            $mLDL['normal'],
             $mHDL['optimal'],
             $mTG['normal']
-        ));
+        );
 
-        // R02
-        $sedang = max($sedang, $mCholTotal['batas_t']);
-        $sedang = max($sedang, $mLDL['batas_t']);
+        $sehat = max($sehat, $r01);
 
-        // R03
-        $sedang = max($sedang, min($mTG['batas_t'], $mCholTotal['batas_t']));
+        /*
+     * R02:
+     * IF Kolesterol Total sedang
+     * OR LDL sedang
+     * OR HDL kurang
+     * OR Trigliserida batas
+     * THEN Risiko Sedang
+     */
+        $r02 = max(
+            $mCholTotal['sedang'],
+            $mLDL['sedang'],
+            $mHDL['kurang'],
+            $mTG['batas_t']
+        );
 
-        // R04
-        $sedang = max($sedang, min($mHDL['kurang'], $mCholTotal['batas_t']));
+        $sedang = max($sedang, $r02);
 
-        // R05
-        $tinggi = max($tinggi, $mCholTotal['tinggi']);
-        $tinggi = max($tinggi, $mLDL['tinggi']);
-        $tinggi = max($tinggi, $mLDL['sangat_t']);
+        /*
+     * R03:
+     * IF Kolesterol Total sedang
+     * AND Trigliserida batas
+     * THEN Risiko Sedang
+     */
+        $r03 = min(
+            $mCholTotal['sedang'],
+            $mTG['batas_t']
+        );
 
-        // R06
-        $tinggi = max($tinggi, min($mTG['tinggi'], $mCholTotal['tinggi']));
+        $sedang = max($sedang, $r03);
 
-        // R07
-        $tinggi = max($tinggi, $mTG['sangat_t']);
+        /*
+     * R04:
+     * IF HDL kurang
+     * AND Kolesterol Total sedang
+     * THEN Risiko Sedang
+     */
+        $r04 = min(
+            $mHDL['kurang'],
+            $mCholTotal['sedang']
+        );
 
-        // R08
-        $tinggi = max($tinggi, min($mHDL['rendah'], $mLDL['tinggi']));
+        $sedang = max($sedang, $r04);
 
-        // R09
-        $tinggi = max($tinggi, min($mApoB['tinggi'], $mLDL['tinggi']));
+        /*
+     * R05:
+     * IF Kolesterol Total tinggi
+     * OR LDL tinggi
+     * THEN Risiko Tinggi
+     */
+        $r05 = max(
+            $mCholTotal['tinggi'],
+            $mLDL['tinggi']
+        );
 
-        // R10
-        $sedang = max($sedang, min($mApoB['batas_t'], $mCholTotal['batas_t']));
+        $tinggi = max($tinggi, $r05);
 
-        return ['sehat' => $sehat, 'risiko_sedang' => $sedang, 'risiko_tinggi' => $tinggi];
+        /*
+     * R06:
+     * IF Trigliserida tinggi
+     * AND Kolesterol Total tinggi
+     * THEN Risiko Tinggi
+     */
+        $r06 = min(
+            $mTG['tinggi'],
+            $mCholTotal['tinggi']
+        );
+
+        $tinggi = max($tinggi, $r06);
+
+        /*
+     * R07:
+     * IF Trigliserida sangat tinggi
+     * THEN Risiko Tinggi
+     */
+        $r07 = $mTG['sangat_t'];
+
+        $tinggi = max($tinggi, $r07);
+
+        /*
+     * R08:
+     * IF HDL rendah
+     * AND LDL tinggi
+     * THEN Risiko Tinggi
+     */
+        $r08 = min(
+            $mHDL['rendah'],
+            $mLDL['tinggi']
+        );
+
+        $tinggi = max($tinggi, $r08);
+
+        /*
+     * R09:
+     * IF HDL rendah
+     * AND Trigliserida tinggi
+     * THEN Risiko Tinggi
+     */
+        $r09 = min(
+            $mHDL['rendah'],
+            $mTG['tinggi']
+        );
+
+        $tinggi = max($tinggi, $r09);
+
+        return [
+            'sehat' => $sehat,
+            'risiko_sedang' => $sedang,
+            'risiko_tinggi' => $tinggi,
+        ];
     }
+
 
     /**
      * ── Kelompok 4: Aturan Fungsi Ginjal ────────────────────────────────────
@@ -541,38 +628,100 @@ class FuzzyMamdaniService
         $sedang = 0.0;
         $tinggi = 0.0;
 
-        // R01
-        $sehat = max($sehat, min(
+        /*
+     * R01:
+     * IF UreaN normal
+     * AND Ureum normal
+     * AND Kreatinin normal
+     * AND eLFG optimal
+     * THEN Sehat
+     */
+        $r01 = min(
             $mUreaN['normal'],
             $mUreum['normal'],
             $mKreatinin['normal'],
-            $mELFG['normal']
-        ));
+            $mELFG['optimal']
+        );
 
-        // R02
-        $sedang = max($sedang, $mUreaN['batas_t']);
-        $sedang = max($sedang, $mUreum['batas_t']);
-        $sedang = max($sedang, $mKreatinin['batas_t']);
+        $sehat = max($sehat, $r01);
 
-        // R03
-        $sedang = max($sedang, $mELFG['batas_t']);
+        /*
+     * R02:
+     * IF UreaN batas
+     * OR Ureum batas
+     * OR Kreatinin batas
+     * THEN Risiko Sedang
+     */
+        $r02 = max(
+            $mUreaN['batas_t'],
+            $mUreum['batas_t'],
+            $mKreatinin['batas_t']
+        );
 
-        // R04
-        $tinggi = max($tinggi, $mUreaN['tinggi']);
-        $tinggi = max($tinggi, $mUreum['tinggi']);
-        $tinggi = max($tinggi, $mKreatinin['tinggi']);
+        $sedang = max($sedang, $r02);
 
-        // R05–R06: eLFG rendah atau kritis
-        $tinggi = max($tinggi, $mELFG['rendah']);
-        $tinggi = max($tinggi, $mELFG['kritis']);
+        /*
+     * R03:
+     * IF eLFG kurang
+     * THEN Risiko Sedang
+     */
+        $r03 = $mELFG['kurang'];
 
-        // R07
-        $tinggi = max($tinggi, min($mUreaN['tinggi'], $mKreatinin['tinggi']));
+        $sedang = max($sedang, $r03);
 
-        // R08
-        $sedang = max($sedang, min($mUreum['batas_t'], $mELFG['batas_t']));
+        /*
+     * R04:
+     * IF UreaN tinggi
+     * OR Ureum tinggi
+     * OR Kreatinin tinggi
+     * THEN Risiko Tinggi
+     */
+        $r04 = max(
+            $mUreaN['tinggi'],
+            $mUreum['tinggi'],
+            $mKreatinin['tinggi']
+        );
 
-        return ['sehat' => $sehat, 'risiko_sedang' => $sedang, 'risiko_tinggi' => $tinggi];
+        $tinggi = max($tinggi, $r04);
+
+        /*
+     * R05:
+     * IF eLFG rendah
+     * THEN Risiko Tinggi
+     */
+        $r05 = $mELFG['rendah'];
+
+        $tinggi = max($tinggi, $r05);
+
+        /*
+     * R06:
+     * IF UreaN tinggi AND Kreatinin tinggi
+     * THEN Risiko Tinggi
+     */
+        $r06 = min(
+            $mUreaN['tinggi'],
+            $mKreatinin['tinggi']
+        );
+
+        $tinggi = max($tinggi, $r06);
+
+        /*
+     * R07:
+     * IF Ureum batas AND eLFG kurang
+     * THEN Risiko Sedang
+     */
+        $r07 = min(
+            $mUreum['batas_t'],
+            $mELFG['kurang']
+        );
+
+        $sedang = max($sedang, $r07);
+
+        return [
+            'sehat' => $sehat,
+            'risiko_sedang' => $sedang,
+            'risiko_tinggi' => $tinggi,
+        ];
     }
 
     /**
@@ -615,45 +764,129 @@ class FuzzyMamdaniService
         $sedang = 0.0;
         $tinggi = 0.0;
 
-        // R01
-        $sehat = max($sehat, min(
+        /*
+     * R01:
+     * IF Sistolik normal
+     * AND Diastolik normal
+     * AND Nadi normal
+     * AND Pernapasan normal
+     * THEN Sehat
+     */
+        $r01 = min(
             $mSis['normal'],
             $mDia['normal'],
             $mNadi['normal'],
             $mNaf['normal']
-        ));
+        );
 
-        // R02
-        $sedang = max($sedang, $mSis['pra_hiper']);
-        $sedang = max($sedang, $mDia['pra_hiper']);
+        $sehat = max($sehat, $r01);
 
-        // R03
-        $sedang = max($sedang, $mNadi['takikardi']);
+        /*
+     * R02:
+     * IF Sistolik pra-hipertensi
+     * OR Diastolik pra-hipertensi
+     * THEN Risiko Sedang
+     */
+        $r02 = max(
+            $mSis['pra_hiper'],
+            $mDia['pra_hiper']
+        );
 
-        // R04
-        $sedang = max($sedang, $mNaf['sedang']);
+        $sedang = max($sedang, $r02);
 
-        // R05
-        $tinggi = max($tinggi, $mSis['hiper_g1']);
-        $tinggi = max($tinggi, $mDia['hiper_g1']);
+        /*
+     * R03:
+     * IF Nadi takikardi
+     * THEN Risiko Sedang
+     */
+        $r03 = $mNadi['takikardi'];
 
-        // R06
-        $tinggi = max($tinggi, $mSis['hiper_g2']);
-        $tinggi = max($tinggi, $mDia['hiper_g2']);
+        $sedang = max($sedang, $r03);
 
-        // R07
-        $tinggi = max($tinggi, $mNadi['kritis']);
+        /*
+     * R04:
+     * IF Pernapasan sedang
+     * THEN Risiko Sedang
+     */
+        $r04 = $mNaf['sedang'];
 
-        // R08
-        $tinggi = max($tinggi, $mNaf['tinggi']);
+        $sedang = max($sedang, $r04);
 
-        // R09: Keduanya hipertensi G1 → agresif
-        $tinggi = max($tinggi, min($mSis['hiper_g1'], $mDia['hiper_g1']));
+        /*
+     * R05:
+     * IF Sistolik hipertensi G1
+     * OR Diastolik hipertensi G1
+     * THEN Risiko Tinggi
+     */
+        $r05 = max(
+            $mSis['hiper_g1'],
+            $mDia['hiper_g1']
+        );
 
-        // R10: Bradikardia + hipertensi G1
-        $tinggi = max($tinggi, min($mNadi['bradikardi'], $mSis['hiper_g1']));
+        $tinggi = max($tinggi, $r05);
 
-        return ['sehat' => $sehat, 'risiko_sedang' => $sedang, 'risiko_tinggi' => $tinggi];
+        /*
+     * R06:
+     * IF Sistolik hipertensi G2
+     * OR Diastolik hipertensi G2
+     * THEN Risiko Tinggi
+     */
+        $r06 = max(
+            $mSis['hiper_g2'],
+            $mDia['hiper_g2']
+        );
+
+        $tinggi = max($tinggi, $r06);
+
+        /*
+     * R07:
+     * IF Nadi kritis
+     * THEN Risiko Tinggi
+     */
+        $r07 = $mNadi['kritis'];
+
+        $tinggi = max($tinggi, $r07);
+
+        /*
+     * R08:
+     * IF Pernapasan tinggi
+     * THEN Risiko Tinggi
+     */
+        $r08 = $mNaf['tinggi'];
+
+        $tinggi = max($tinggi, $r08);
+
+        /*
+     * R09:
+     * IF Sistolik hipertensi G1
+     * AND Diastolik hipertensi G1
+     * THEN Risiko Tinggi
+     */
+        $r09 = min(
+            $mSis['hiper_g1'],
+            $mDia['hiper_g1']
+        );
+
+        $tinggi = max($tinggi, $r09);
+
+        /*
+     * R10:
+     * IF Nadi bradikardi
+     * AND Sistolik hipertensi G1
+     * THEN Risiko Tinggi
+     */
+        $r10 = min(
+            $mNadi['bradikardi'],
+            $mSis['hiper_g1']
+        );
+
+        $tinggi = max($tinggi, $r10);
+
+        return [
+            'sehat' => $sehat,
+            'risiko_sedang' => $sedang,
+            'risiko_tinggi' => $tinggi,
+        ];
     }
 
     /**
@@ -667,35 +900,97 @@ class FuzzyMamdaniService
      * R06: IF LP Tinggi                  → Tinggi
      * R07: IF IMT Obesitas AND LP Tinggi  → Tinggi (kombinasi terburuk)
      */
-    private function applyRuleAntropometri(array $mIMT, array $mLP): array
-    {
+    private function applyRuleAntropometri(
+        array $mIMT,
+        array $mLP
+    ): array {
         $sehat  = 0.0;
         $sedang = 0.0;
         $tinggi = 0.0;
 
-        // R01
-        $sehat = max($sehat, min($mIMT['normal'], $mLP['normal']));
+        /*
+     * R01:
+     * IF IMT normal AND Lingkar Perut normal
+     * THEN Sehat
+     */
+        $r01 = min(
+            $mIMT['normal'],
+            $mLP['normal']
+        );
 
-        // R02
-        $sehat = max($sehat, min($mIMT['kurus'], $mLP['normal']));
+        $sehat = max($sehat, $r01);
 
-        // R03
-        $sedang = max($sedang, $mIMT['gemuk']);
-        $sedang = max($sedang, $mLP['risiko']);
+        /*
+     * R02:
+     * IF IMT kurus AND Lingkar Perut normal
+     * THEN Sehat
+     */
+        $r02 = min(
+            $mIMT['kurus'],
+            $mLP['normal']
+        );
 
-        // R04
-        $tinggi = max($tinggi, min($mIMT['gemuk'], $mLP['risiko']));
+        $sehat = max($sehat, $r02);
 
-        // R05
-        $tinggi = max($tinggi, $mIMT['obesitas']);
+        /*
+     * R03:
+     * IF IMT gemuk OR Lingkar Perut berisiko
+     * THEN Risiko Sedang
+     */
+        $r03 = max(
+            $mIMT['gemuk'],
+            $mLP['risiko']
+        );
 
-        // R06
-        $tinggi = max($tinggi, $mLP['tinggi']);
+        $sedang = max($sedang, $r03);
 
-        // R07
-        $tinggi = max($tinggi, min($mIMT['obesitas'], $mLP['tinggi']));
+        /*
+     * R04:
+     * IF IMT gemuk AND Lingkar Perut berisiko
+     * THEN Risiko Tinggi
+     */
+        $r04 = min(
+            $mIMT['gemuk'],
+            $mLP['risiko']
+        );
 
-        return ['sehat' => $sehat, 'risiko_sedang' => $sedang, 'risiko_tinggi' => $tinggi];
+        $tinggi = max($tinggi, $r04);
+
+        /*
+     * R05:
+     * IF IMT obesitas
+     * THEN Risiko Tinggi
+     */
+        $r05 = $mIMT['obesitas'];
+
+        $tinggi = max($tinggi, $r05);
+
+        /*
+     * R06:
+     * IF Lingkar Perut tinggi
+     * THEN Risiko Tinggi
+     */
+        $r06 = $mLP['tinggi'];
+
+        $tinggi = max($tinggi, $r06);
+
+        /*
+     * R07:
+     * IF IMT obesitas AND Lingkar Perut tinggi
+     * THEN Risiko Tinggi
+     */
+        $r07 = min(
+            $mIMT['obesitas'],
+            $mLP['tinggi']
+        );
+
+        $tinggi = max($tinggi, $r07);
+
+        return [
+            'sehat' => $sehat,
+            'risiko_sedang' => $sedang,
+            'risiko_tinggi' => $tinggi,
+        ];
     }
 
     // =========================================================================
@@ -711,50 +1006,166 @@ class FuzzyMamdaniService
     // =========================================================================
 
     /**
-     * Defuzzifikasi Centroid (CoA) untuk satu kelompok.
+     * Skor default apabila tidak ada rule fuzzy yang aktif.
      *
-     * @param  array  $ruleOutputs  ['sehat'=>float, 'risiko_sedang'=>float, 'risiko_tinggi'=>float]
-     * @return float  Skor crisp [0, 100]
+     * Nilai ini bukan hasil inferensi klinis.
+     * Nilai 10 dipilih sebagai skor rendah/aman
+     * agar pipeline selalu menghasilkan float.
+     */
+    private const DEFAULT_DEFUZZIFIED_SCORE = 10.0;
+
+
+    /**
+     * Defuzzifikasi Mamdani dengan metode Centroid / Center of Area.
+     *
+     * Universe output : [0, 100]
+     * Sampling        : 1000 interval
+     * Integrasi       : Trapezoidal numerical integration
+     *
+     * @param array $ruleOutputs
+     * [
+     *     'sehat' => float,
+     *     'risiko_sedang' => float,
+     *     'risiko_tinggi' => float
+     * ]
+     *
+     * @return float Skor crisp pada rentang 0–100
      */
     private function defuzzifyGroup(array $ruleOutputs): float
     {
-        $alphaSehat  = $ruleOutputs['sehat']         ?? 0.0;
-        $alphaSedang = $ruleOutputs['risiko_sedang'] ?? 0.0;
-        $alphaTinggi = $ruleOutputs['risiko_tinggi'] ?? 0.0;
+        /*
+     * Alpha rule dibatasi ke rentang fuzzy [0, 1].
+     */
+        $alphaSehat = $this->clamp(
+            (float) ($ruleOutputs['sehat'] ?? 0.0),
+            0.0,
+            1.0
+        );
 
-        $steps       = 200;
-        $start       = 0.0;
-        $end         = 100.0;
-        $step        = ($end - $start) / $steps;
+        $alphaSedang = $this->clamp(
+            (float) ($ruleOutputs['risiko_sedang'] ?? 0.0),
+            0.0,
+            1.0
+        );
+
+        $alphaTinggi = $this->clamp(
+            (float) ($ruleOutputs['risiko_tinggi'] ?? 0.0),
+            0.0,
+            1.0
+        );
+
+        /*
+     * Universe output.
+     */
+        $start = 0.0;
+        $end   = 100.0;
+        $steps = 1000;
+        $step  = ($end - $start) / $steps;
+
         $numerator   = 0.0;
         $denominator = 0.0;
 
         for ($i = 0; $i <= $steps; $i++) {
             $z = $start + ($i * $step);
 
-            // MF output per set (sebelum dipotong alpha)
-            $muSehat  = $this->trapezoidLeft($z, 20.0, 40.0);
-            $muSedang = $this->triangle($z, 20.0, 47.0, 75.0);
-            $muTinggi = $this->trapezoidRight($z, 55.0, 80.0);
+            /*
+         * Membership function output sebelum clipping.
+         */
+            $muSehat = $this->trapezoidLeft(
+                $z,
+                20.0,
+                40.0
+            );
 
-            // Pemotongan (clipping) dengan kekuatan aturan
-            $muSehat  = min($alphaSehat,  $muSehat);
-            $muSedang = min($alphaSedang, $muSedang);
-            $muTinggi = min($alphaTinggi, $muTinggi);
+            $muSedang = $this->triangle(
+                $z,
+                20.0,
+                47.0,
+                75.0
+            );
 
-            // Agregasi MAX
-            $muAgregat = max($muSehat, $muSedang, $muTinggi);
+            $muTinggi = $this->trapezoidRight(
+                $z,
+                55.0,
+                80.0
+            );
 
-            $numerator   += $z * $muAgregat;
-            $denominator += $muAgregat;
+            /*
+         * Clipping Mamdani menggunakan MIN.
+         */
+            $muSehat = min(
+                $alphaSehat,
+                $muSehat
+            );
+
+            $muSedang = min(
+                $alphaSedang,
+                $muSedang
+            );
+
+            $muTinggi = min(
+                $alphaTinggi,
+                $muTinggi
+            );
+
+            /*
+         * Agregasi output menggunakan MAX.
+         */
+            $muAgregat = max(
+                $muSehat,
+                $muSedang,
+                $muTinggi
+            );
+
+            /*
+         * Aturan integrasi trapezoidal:
+         * titik pertama dan terakhir berbobot 0.5.
+         */
+            $weight = (
+                $i === 0 ||
+                $i === $steps
+            ) ? 0.5 : 1.0;
+
+            $numerator += (
+                $z *
+                $muAgregat *
+                $weight
+            );
+
+            $denominator += (
+                $muAgregat *
+                $weight
+            );
         }
 
-        // Jika tidak ada aturan yang aktif → default ke 10 (sehat ringan)
-        if ($denominator == 0) {
-            return 10.0;
+        /*
+     * Tidak ada rule aktif atau tidak terbentuk area fuzzy.
+     */
+        if ($denominator < 1e-12) {
+            return self::DEFAULT_DEFUZZIFIED_SCORE;
         }
 
-        return round($numerator / $denominator, 4);
+        /*
+     * Faktor $step di pembilang dan penyebut saling
+     * menghilangkan, sehingga tidak wajib dimasukkan.
+     */
+        $score = $numerator / $denominator;
+
+        return round(
+            $this->clamp($score, $start, $end),
+            4
+        );
+    }
+
+    private function clamp(
+        float $value,
+        float $min,
+        float $max
+    ): float {
+        return max(
+            $min,
+            min($max, $value)
+        );
     }
 
     // =========================================================================
@@ -950,18 +1361,17 @@ class FuzzyMamdaniService
         $mLDL       = $this->fuzzifyCholLDL($cholLDL);
         $mHDL       = $this->fuzzifyCholHDL($cholHDL);
         $mTG        = $this->fuzzifyTrigliserida($trigliserida);
-        $mApoB      = $this->fuzzifyApoB($apoB);
-        $ruleLipid = $this->applyRuleProfilLipid($mCholTotal, $mLDL, $mHDL, $mTG, $mApoB);
+        $ruleLipid = $this->applyRuleProfilLipid($mCholTotal, $mLDL, $mHDL, $mTG);
 
         // ── Kelompok 4: Fungsi Ginjal ─────────────────────────────────────────
         $mUreaN    = $this->fuzzifyUreaN($ureaN);
         $mUreum    = $this->fuzzifyUreum($ureum);
-        $mKreatinin = $this->fuzzifyKreatinin($kreatinin, $gender);
+        $mKreatinin = $this->fuzzifyKreatinin($kreatinin);
         $mELFG     = $this->fuzzifyELFG($elfg);
         $ruleGinjal = $this->applyRuleFungsiGinjal($mUreaN, $mUreum, $mKreatinin, $mELFG);
 
         // ── Kelompok 5: Asam Urat ─────────────────────────────────────────────
-        $mAsamUrat = $this->fuzzifyAsamUrat($asamUrat, $gender);
+        $mAsamUrat = $this->fuzzifyAsamUrat($asamUrat);
         $ruleAsamUrat = $this->applyRuleAsamUrat($mAsamUrat);
 
         // ── Kelompok 6: Kardiovaskular ────────────────────────────────────────
@@ -973,7 +1383,7 @@ class FuzzyMamdaniService
 
         // ── Kelompok 7: Antropometri ──────────────────────────────────────────
         $mIMT = $this->fuzzifyIMT($imt);
-        $mLP  = $this->fuzzifyLingkarPerut($lingkarPerut, $gender);
+        $mLP  = $this->fuzzifyLingkarPerut($lingkarPerut);
         $ruleAntro = $this->applyRuleAntropometri($mIMT, $mLP);
 
         // ── Defuzzifikasi: 7 skor kelompok ────────────────────────────────────
